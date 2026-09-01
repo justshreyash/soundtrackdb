@@ -248,7 +248,131 @@ async function fetchImdbMetadata(imdbId) {
   return null;
 }
 
+/**
+ * Search TMDB for a movie or TV show by query, optional year, and media type.
+ */
+async function searchTmdb(query, year = null, mediaType = null) {
+  if (!query) return null;
+  const cleanQuery = String(query).trim();
+  if (!cleanQuery) return null;
+
+  const apiKey = process.env.TMDB_API_KEY || process.env.TMDB_KEY;
+  if (!apiKey) return null;
+
+  try {
+    let url;
+    if (mediaType === 'tv') {
+      url = `https://api.themoviedb.org/3/search/tv?api_key=${apiKey}&query=${encodeURIComponent(cleanQuery)}&language=en-US${year ? `&first_air_date_year=${year}` : ''}`;
+    } else if (mediaType === 'movie') {
+      url = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(cleanQuery)}&language=en-US${year ? `&year=${year}` : ''}`;
+    } else {
+      url = `https://api.themoviedb.org/3/search/multi?api_key=${apiKey}&query=${encodeURIComponent(cleanQuery)}&language=en-US`;
+    }
+
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 10000);
+    const res = await fetch(url, {
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+      },
+      signal: ctrl.signal,
+    }).finally(() => clearTimeout(t));
+
+    if (!res.ok) return null;
+    const json = await res.json();
+    const results = json.results || [];
+    if (!results.length) return null;
+
+    const queryLower = cleanQuery.toLowerCase();
+    const scored = results
+      .map(item => {
+        const itemType = item.media_type || mediaType || (item.first_air_date ? 'tv' : 'movie');
+        if (itemType !== 'tv' && itemType !== 'movie') return null;
+
+        const title = item.title || item.name || item.original_title || item.original_name || '';
+        const releaseDate = item.release_date || item.first_air_date || '';
+        const itemYear = releaseDate ? parseInt(releaseDate.slice(0, 4), 10) : null;
+        const titleLower = title.toLowerCase();
+
+        let score = 0;
+        if (titleLower === queryLower) {
+          score += 100;
+        } else if (titleLower.includes(queryLower) || queryLower.includes(titleLower)) {
+          score += 50;
+        }
+
+        if (year && itemYear) {
+          if (itemYear === parseInt(year, 10)) {
+            score += 40;
+          } else if (Math.abs(itemYear - parseInt(year, 10)) === 1) {
+            score += 20;
+          }
+        }
+
+        score += Math.min(item.popularity || 0, 40);
+        score += Math.min((item.vote_count || 0) / 10, 30);
+
+        return {
+          tmdb_id: String(item.id),
+          type: itemType,
+          title,
+          year: itemYear,
+          score,
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => b.score - a.score);
+
+    if (scored.length > 0) {
+      return scored[0];
+    }
+  } catch (err) {
+    console.warn(`TMDB API search failed for "${cleanQuery}":`, err.message);
+  }
+
+  // 2. Fallback: Wikidata SPARQL lookup by title
+  try {
+    const sparqlProps = mediaType === 'tv'
+      ? `?item wdt:P4983 ?tmdbId. BIND("tv" AS ?itemType)`
+      : mediaType === 'movie'
+      ? `?item wdt:P4947 ?tmdbId. BIND("movie" AS ?itemType)`
+      : `{ ?item wdt:P4983 ?tmdbId. BIND("tv" AS ?itemType) } UNION { ?item wdt:P4947 ?tmdbId. BIND("movie" AS ?itemType) }`;
+
+    const sparql = `SELECT ?item ?label ?tmdbId ?year ?itemType WHERE {
+      ?item rdfs:label "${cleanQuery.replace(/"/g, '\\"')}"@en.
+      ${sparqlProps}
+      OPTIONAL { ?item wdt:P577 ?date. BIND(YEAR(?date) AS ?year) }
+      OPTIONAL { ?item wdt:P580 ?startDate. BIND(YEAR(?startDate) AS ?year) }
+    } LIMIT 1`;
+
+    const url = `https://query.wikidata.org/sparql?format=json&query=${encodeURIComponent(sparql)}`;
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 5000);
+    const res = await fetch(url, {
+      headers: { 'User-Agent': WD_UA, Accept: 'application/sparql-results+json' },
+      signal: ctrl.signal,
+    }).finally(() => clearTimeout(t));
+
+    if (res.ok) {
+      const data = await res.json();
+      const hit = data?.results?.bindings?.[0];
+      if (hit && hit.tmdbId?.value) {
+        return {
+          tmdb_id: String(hit.tmdbId.value),
+          type: hit.itemType?.value || mediaType || 'movie',
+          title: cleanQuery,
+          year: hit.year?.value ? parseInt(hit.year.value, 10) : (year ? parseInt(year, 10) : null),
+        };
+      }
+    }
+  } catch {}
+
+  return null;
+}
+
 module.exports = {
   fetchTmdbMetadata,
   fetchImdbMetadata,
+  searchTmdb,
 };

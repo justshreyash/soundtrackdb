@@ -9,9 +9,14 @@ async function findSoundtrackPlaylist(title, year = '') {
 
   const queries = [
     `${title} soundtrack`,
+    `${title} OST`,
     `${title} official soundtrack`,
-    `${title} ${year} soundtrack`,
+    `${title} Original Soundtrack`,
   ];
+  if (year) {
+    queries.push(`${title} ${year} soundtrack`);
+    queries.push(`${title} ${year} OST`);
+  }
 
   // 1. Search for Soundtrack Playlists
   for (const query of queries) {
@@ -91,41 +96,49 @@ async function findSoundtrackPlaylist(title, year = '') {
   }
 
   // 2. Fallback: Search for Official OST Album on Spotify if no playlist matched
-  try {
-    const albumQuery = `${title} (Original Motion Picture Soundtrack)`;
-    const rawAlbum = await spotifyGraphQL('searchDesktop', SEARCH_HASH, {
-      searchTerm: albumQuery,
-      offset: 0,
-      limit: 5,
-      numberOfTopResults: 1,
-      includeAudiobooks: false,
-      includeArtistHasConcertsField: false,
-      includePreReleases: true,
-      includeLocalConcertsField: false,
-    });
+  const albumQueries = [
+    `${title} (Original Motion Picture Soundtrack)`,
+    `${title} (Original Television Soundtrack)`,
+    `${title} (Soundtrack from the TV Series)`,
+    `${title} OST`,
+  ];
 
-    const albums = rawAlbum?.data?.searchV2?.albumsV2?.items || [];
-    const titleLower = title.toLowerCase();
+  for (const albumQuery of albumQueries) {
+    try {
+      const rawAlbum = await spotifyGraphQL('searchDesktop', SEARCH_HASH, {
+        searchTerm: albumQuery,
+        offset: 0,
+        limit: 5,
+        numberOfTopResults: 1,
+        includeAudiobooks: false,
+        includeArtistHasConcertsField: false,
+        includePreReleases: true,
+        includeLocalConcertsField: false,
+      });
 
-    for (const item of albums) {
-      const a = item.data;
-      if (!a || !a.uri) continue;
-      const aName = (a.name || '').toLowerCase();
-      const aId = a.uri.split(':').pop();
+      const albums = rawAlbum?.data?.searchV2?.albumsV2?.items || [];
+      const titleLower = title.toLowerCase();
 
-      if (aName.includes(titleLower) && (aName.includes('soundtrack') || aName.includes('score') || aName.includes('ost') || aName.includes('music from'))) {
-        return {
-          spotify_playlist_id: aId,
-          spotify_url: `https://open.spotify.com/album/${aId}`,
-          type: 'album',
-          source: 'official',
-          verified: true,
-          playlist_name: a.name,
-        };
+      for (const item of albums) {
+        const a = item.data;
+        if (!a || !a.uri) continue;
+        const aName = (a.name || '').toLowerCase();
+        const aId = a.uri.split(':').pop();
+
+        if (aName.includes(titleLower) && (aName.includes('soundtrack') || aName.includes('score') || aName.includes('ost') || aName.includes('music from'))) {
+          return {
+            spotify_playlist_id: aId,
+            spotify_url: `https://open.spotify.com/album/${aId}`,
+            type: 'album',
+            source: 'official',
+            verified: true,
+            playlist_name: a.name,
+          };
+        }
       }
+    } catch (err) {
+      console.warn(`OST Album fallback search failed for "${albumQuery}":`, err.message);
     }
-  } catch (err) {
-    console.warn(`OST Album fallback search failed for "${title}":`, err.message);
   }
 
   return null;

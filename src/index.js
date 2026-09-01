@@ -38,6 +38,7 @@ app.get('/api', (req, res) => {
       artist: 'GET /api/artist/:id',
       'artist-tracks': 'GET /api/artist/:id/top-tracks',
       health: 'GET /api/health',
+      'soundtrack-resolve': 'GET /v1/titles/resolve?title={title}&year={year}&type={type}',
       'soundtrack-by-imdb': 'GET /v1/titles/imdb/:imdb_id/music',
       'soundtrack-by-tmdb': 'GET /v1/titles/tmdb/:tmdb_id/music',
       'soundtrack-by-slug': 'GET /v1/titles/slug/:slug/music',

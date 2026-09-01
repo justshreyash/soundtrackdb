@@ -298,5 +298,125 @@
     "spotify_url": "https://open.spotify.com/playlist/2oSLzFVmcISVLJUzspBlKs",
     "source": "community",
     "verified": false
+  },
+  {
+    "id": "st-32",
+    "title_id": "31",
+    "platform": "spotify",
+    "type": "playlist",
+    "spotify_playlist_id": "5FE7Hhl6b5zMgocQMD9vmt",
+    "spotify_url": "https://open.spotify.com/playlist/5FE7Hhl6b5zMgocQMD9vmt",
+    "source": "official",
+    "verified": true
+  },
+  {
+    "id": "st-33",
+    "title_id": "32",
+    "platform": "spotify",
+    "type": "playlist",
+    "spotify_playlist_id": "1MKvKQ9bAkPTPDImrI1MTX",
+    "spotify_url": "https://open.spotify.com/playlist/1MKvKQ9bAkPTPDImrI1MTX",
+    "source": "community",
+    "verified": false
+  },
+  {
+    "id": "st-34",
+    "title_id": "33",
+    "platform": "spotify",
+    "type": "playlist",
+    "spotify_playlist_id": "2hVvst2nJuqgMgZbl38VIY",
+    "spotify_url": "https://open.spotify.com/playlist/2hVvst2nJuqgMgZbl38VIY",
+    "source": "community",
+    "verified": false
+  },
+  {
+    "id": "st-35",
+    "title_id": "35",
+    "platform": "spotify",
+    "type": "playlist",
+    "spotify_playlist_id": "4jJkZ1J6zdSRU7ZJoepAX1",
+    "spotify_url": "https://open.spotify.com/playlist/4jJkZ1J6zdSRU7ZJoepAX1",
+    "source": "community",
+    "verified": false
+  },
+  {
+    "id": "st-36",
+    "title_id": "36",
+    "platform": "spotify",
+    "type": "playlist",
+    "spotify_playlist_id": "37i9dQZF1DX5cZuTmLftWM",
+    "spotify_url": "https://open.spotify.com/playlist/37i9dQZF1DX5cZuTmLftWM",
+    "source": "official",
+    "verified": true
+  },
+  {
+    "id": "st-37",
+    "title_id": "37",
+    "platform": "spotify",
+    "type": "playlist",
+    "spotify_playlist_id": "23YqCEVIK4irq7p7xVyNi3",
+    "spotify_url": "https://open.spotify.com/playlist/23YqCEVIK4irq7p7xVyNi3",
+    "source": "community",
+    "verified": false
+  },
+  {
+    "id": "st-38",
+    "title_id": "38",
+    "platform": "spotify",
+    "type": "playlist",
+    "spotify_playlist_id": "37i9dQZF1DX5cZuTmLftWM",
+    "spotify_url": "https://open.spotify.com/playlist/37i9dQZF1DX5cZuTmLftWM",
+    "source": "official",
+    "verified": true
+  },
+  {
+    "id": "st-39",
+    "title_id": "39",
+    "platform": "spotify",
+    "type": "playlist",
+    "spotify_playlist_id": "23YqCEVIK4irq7p7xVyNi3",
+    "spotify_url": "https://open.spotify.com/playlist/23YqCEVIK4irq7p7xVyNi3",
+    "source": "community",
+    "verified": false
+  },
+  {
+    "id": "st-40",
+    "title_id": "40",
+    "platform": "spotify",
+    "type": "playlist",
+    "spotify_playlist_id": "5tsAl9B4rp3JXYkCfFciNJ",
+    "spotify_url": "https://open.spotify.com/playlist/5tsAl9B4rp3JXYkCfFciNJ",
+    "source": "community",
+    "verified": false
+  },
+  {
+    "id": "st-41",
+    "title_id": "41",
+    "platform": "spotify",
+    "type": "playlist",
+    "spotify_playlist_id": "3q9SubKjjhNx9za9vtgcS2",
+    "spotify_url": "https://open.spotify.com/playlist/3q9SubKjjhNx9za9vtgcS2",
+    "source": "official",
+    "verified": true
+  },
+  {
+    "id": "st-42",
+    "title_id": "42",
+    "platform": "spotify",
+    "type": "playlist",
+    "spotify_playlist_id": "37i9dQZF1DX5cZuTmLftWM",
+    "spotify_url": "https://open.spotify.com/playlist/37i9dQZF1DX5cZuTmLftWM",
+    "source": "official",
+    "verified": true
+  },
+  {
+    "id": "st-43",
+    "title_id": "43",
+    "platform": "spotify",
+    "type": "playlist",
+    "spotify_playlist_id": "23YqCEVIK4irq7p7xVyNi3",
+    "spotify_url": "https://open.spotify.com/playlist/23YqCEVIK4irq7p7xVyNi3",
+    "source": "community",
+    "verified": false
   }
 ]

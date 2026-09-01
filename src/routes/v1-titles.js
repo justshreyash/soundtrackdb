@@ -23,6 +23,7 @@ const {
   resolveByImdb,
   resolveBySlug,
   resolveById,
+  resolveByTitleOrSlug,
 } = require('../services/soundtrack-resolver');
 
 function formatTitle(t) {
@@ -49,6 +50,38 @@ function formatMusic(soundtracks) {
     verified: s.verified !== undefined ? Boolean(s.verified) : true,
   }));
 }
+
+// 0. Universal Resolve & Auto-Ingest: GET /v1/titles/resolve?title=...&slug=...&year=...&type=...&force=...
+router.get('/resolve', async (req, res) => {
+  const { title, slug, q, year, type } = req.query;
+  const force = req.query.force === 'true';
+  const targetTitle = title || q;
+
+  if (!targetTitle && !slug) {
+    return respondError(res, 400, 'Parameter "title" (or "q") or "slug" is required');
+  }
+
+  try {
+    const result = await resolveByTitleOrSlug({
+      title: targetTitle,
+      slug,
+      year,
+      type,
+      force,
+    });
+
+    if (!result || !result.title) {
+      return respondError(res, 404, `Could not resolve title for: ${targetTitle || slug}`);
+    }
+
+    return respond(res, 200, {
+      title: formatTitle(result.title),
+      music: formatMusic(result.soundtracks || []),
+    });
+  } catch (err) {
+    return respondError(res, 500, `Failed to resolve title: ${err.message}`);
+  }
+});
 
 // 1. Resolve by IMDb: GET /v1/titles/imdb/:imdb_id/music
 router.get('/imdb/:imdb_id/music', async (req, res) => {
@@ -90,9 +123,10 @@ router.get('/tmdb/:tmdb_id/music', async (req, res) => {
 // 3. Resolve by Slug: GET /v1/titles/slug/:slug/music
 router.get('/slug/:slug/music', async (req, res) => {
   const { slug } = req.params;
+  const { title, year, type } = req.query;
   const force = req.query.force === 'true';
   try {
-    const result = await resolveBySlug(slug, force);
+    const result = await resolveByTitleOrSlug({ slug, title, year, type, force });
     if (!result || !result.title) {
       return respondError(res, 404, `Title not found for slug: ${slug}`);
     }
