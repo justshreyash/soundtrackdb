@@ -1,0 +1,272 @@
+[
+  {
+    "id": "1",
+    "title": "The Electric State",
+    "year": 2025,
+    "type": "movie",
+    "imdb_id": "tt13070038",
+    "tmdb_id": "766507",
+    "slug": "the-electric-state-2025"
+  },
+  {
+    "id": "2",
+    "title": "Back in Action",
+    "year": 2025,
+    "type": "movie",
+    "imdb_id": "tt21192188",
+    "tmdb_id": "993710",
+    "slug": "back-in-action-2025"
+  },
+  {
+    "id": "3",
+    "title": "Carry-On",
+    "year": 2024,
+    "type": "movie",
+    "imdb_id": "tt21345474",
+    "tmdb_id": "1005331",
+    "slug": "carry-on-2024"
+  },
+  {
+    "id": "4",
+    "title": "Emilia Pérez",
+    "year": 2024,
+    "type": "movie",
+    "imdb_id": "tt20221436",
+    "tmdb_id": "974950",
+    "slug": "emilia-perez-2024"
+  },
+  {
+    "id": "5",
+    "title": "Rebel Ridge",
+    "year": 2024,
+    "type": "movie",
+    "imdb_id": "tt11301886",
+    "tmdb_id": "646097",
+    "slug": "rebel-ridge-2024"
+  },
+  {
+    "id": "6",
+    "title": "Hit Man",
+    "year": 2024,
+    "type": "movie",
+    "imdb_id": "tt20215968",
+    "tmdb_id": "974635",
+    "slug": "hit-man-2024"
+  },
+  {
+    "id": "7",
+    "title": "The Union",
+    "year": 2024,
+    "type": "movie",
+    "imdb_id": "tt12389784",
+    "tmdb_id": "848685",
+    "slug": "the-union-2024"
+  },
+  {
+    "id": "8",
+    "title": "Beverly Hills Cop: Axel F",
+    "year": 2024,
+    "type": "movie",
+    "imdb_id": "tt3083016",
+    "tmdb_id": "519182",
+    "slug": "beverly-hills-cop-axel-f-2024"
+  },
+  {
+    "id": "9",
+    "title": "Atlas",
+    "year": 2024,
+    "type": "movie",
+    "imdb_id": "tt14856980",
+    "tmdb_id": "823464",
+    "slug": "atlas-2024"
+  },
+  {
+    "id": "10",
+    "title": "Damsel",
+    "year": 2024,
+    "type": "movie",
+    "imdb_id": "tt13452446",
+    "tmdb_id": "763215",
+    "slug": "damsel-2024"
+  },
+  {
+    "id": "11",
+    "title": "Spaceman",
+    "year": 2024,
+    "type": "movie",
+    "imdb_id": "tt11097384",
+    "tmdb_id": "636706",
+    "slug": "spaceman-2024"
+  },
+  {
+    "id": "12",
+    "title": "Scoop",
+    "year": 2024,
+    "type": "movie",
+    "imdb_id": "tt21279888",
+    "tmdb_id": "1139829",
+    "slug": "scoop-2024"
+  },
+  {
+    "id": "13",
+    "title": "Uglies",
+    "year": 2024,
+    "type": "movie",
+    "imdb_id": "tt10086962",
+    "tmdb_id": "744275",
+    "slug": "uglies-2024"
+  },
+  {
+    "id": "14",
+    "title": "The Piano Lesson",
+    "year": 2024,
+    "type": "movie",
+    "imdb_id": "tt14234056",
+    "tmdb_id": "1096196",
+    "slug": "the-piano-lesson-2024"
+  },
+  {
+    "id": "15",
+    "title": "Spellbound",
+    "year": 2024,
+    "type": "movie",
+    "imdb_id": "tt6769208",
+    "tmdb_id": "592983",
+    "slug": "spellbound-2024"
+  },
+  {
+    "id": "16",
+    "title": "Joy",
+    "year": 2024,
+    "type": "movie",
+    "imdb_id": "tt29267156",
+    "tmdb_id": "1182368",
+    "slug": "joy-2024"
+  },
+  {
+    "id": "17",
+    "title": "Don't Move",
+    "year": 2024,
+    "type": "movie",
+    "imdb_id": "tt23803070",
+    "tmdb_id": "1105407",
+    "slug": "dont-move-2024"
+  },
+  {
+    "id": "18",
+    "title": "The Deliverance",
+    "year": 2024,
+    "type": "movie",
+    "imdb_id": "tt17392212",
+    "tmdb_id": "938614",
+    "slug": "the-deliverance-2024"
+  },
+  {
+    "id": "19",
+    "title": "Lonely Planet",
+    "year": 2024,
+    "type": "movie",
+    "imdb_id": "tt19852230",
+    "tmdb_id": "963746",
+    "slug": "lonely-planet-2024"
+  },
+  {
+    "id": "20",
+    "title": "Apex",
+    "year": 2026,
+    "type": "movie",
+    "imdb_id": "tt26744390",
+    "tmdb_id": "1084199",
+    "slug": "apex-2026"
+  },
+  {
+    "id": "21",
+    "title": "Havoc",
+    "year": 2025,
+    "type": "movie",
+    "imdb_id": "tt14115682",
+    "tmdb_id": "801335",
+    "slug": "havoc-2025"
+  },
+  {
+    "id": "22",
+    "title": "Wake Up Dead Man: A Knives Out Mystery",
+    "year": 2025,
+    "type": "movie",
+    "imdb_id": "tt14376176",
+    "tmdb_id": "827014",
+    "slug": "wake-up-dead-man-a-knives-out-mystery-2025"
+  },
+  {
+    "id": "23",
+    "title": "Frankenstein",
+    "year": 2025,
+    "type": "movie",
+    "imdb_id": "tt27122049",
+    "tmdb_id": "1094556",
+    "slug": "frankenstein-2025"
+  },
+  {
+    "id": "24",
+    "title": "Rip",
+    "year": 2026,
+    "type": "movie",
+    "imdb_id": "tt32585243",
+    "tmdb_id": "1298238",
+    "slug": "rip-2026"
+  },
+  {
+    "id": "25",
+    "title": "A Nonsense Christmas",
+    "year": 2024,
+    "type": "movie",
+    "imdb_id": "tt33479133",
+    "tmdb_id": "1357633",
+    "slug": "a-nonsense-christmas-2024"
+  },
+  {
+    "id": "26",
+    "title": "Oppenheimer",
+    "year": 2023,
+    "type": "movie",
+    "imdb_id": "tt15398776",
+    "tmdb_id": "872585",
+    "slug": "oppenheimer-2023"
+  },
+  {
+    "id": "27",
+    "title": "Outer Banks",
+    "year": 2020,
+    "type": "tv",
+    "imdb_id": "",
+    "tmdb_id": "100757",
+    "slug": "outer-banks-2020"
+  },
+  {
+    "id": "28",
+    "title": "Spider-Man: Brand New Day",
+    "year": 2026,
+    "type": "movie",
+    "imdb_id": "",
+    "tmdb_id": "969681",
+    "slug": "spider-man-brand-new-day-2026"
+  },
+  {
+    "id": "29",
+    "title": "Backrooms",
+    "year": 2026,
+    "type": "movie",
+    "imdb_id": "",
+    "tmdb_id": "1083381",
+    "slug": "backrooms-2026"
+  },
+  {
+    "id": "30",
+    "title": "The Early Spring",
+    "year": 2026,
+    "type": "tv",
+    "imdb_id": "",
+    "tmdb_id": "299952",
+    "slug": "the-early-spring-2026"
+  }
+]

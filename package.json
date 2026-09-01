@@ -1,0 +1,23 @@
+{
+  "name": "sptfy-api",
+  "version": "1.0.0",
+  "description": "Free Spotify Search API by CNF1G — anonymous TOTP tokens, no credentials required",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "refresh": "node scripts/refresh.js",
+    "ingest": "node scripts/ingest-by-tmdb.js",
+    "migrate": "node scripts/migrate-to-turso.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.17.4",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "node-cron": "^3.0.3",
+    "sharp": "^0.34.5"
+  }
+}
