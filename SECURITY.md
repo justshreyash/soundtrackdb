@@ -1,7 +1,7 @@
 # Security Policy
 
-**Project:** Sportify API  
-**Maintainer:** shreyash · CNF1G  
+**Project:** SoundTrackDB  
+**Maintainer:** cnf1g & shreyash · CNF1G  
 
 ---
 
@@ -15,10 +15,10 @@
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability in Sportify API, please **do not** open a public GitHub issue. Instead, report it responsibly using one of the following methods:
+If you discover a security vulnerability in SoundTrackDB, please **do not** open a public GitHub issue. Instead, report it responsibly using one of the following methods:
 
-1. **GitHub Private Advisory** — Open a [Security Advisory](https://github.com/Casper-Tech-ke/sportify-api/security/advisories/new) on this repository
-2. **Direct contact** — Reach out via [xcasper.space](https://xcasper.space)
+1. **GitHub Private Advisory** — Open a [Security Advisory](https://github.com/justshreyash/soundtrackdb/security/advisories/new) on this repository
+2. **Direct contact** — Reach out via [GitHub Profile](https://github.com/justshreyash)
 
 Please include:
 - A clear description of the vulnerability
@@ -60,4 +60,5 @@ We appreciate responsible disclosure and will acknowledge your contribution in t
 
 ---
 
-© 2025 CNF1G · shreyash
+© 2026 CNF1G · cnf1g & shreyash
+

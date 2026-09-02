@@ -1,7 +1,7 @@
 {
-  "name": "sptfy-api",
+  "name": "soundtrackdb",
   "version": "1.0.0",
-  "description": "Free Spotify Search API by CNF1G — anonymous TOTP tokens, no credentials required",
+  "description": "Free Spotify Music & Movie Soundtrack API by CNF1G — anonymous TOTP tokens, no credentials required",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",

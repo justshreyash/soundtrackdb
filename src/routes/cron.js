@@ -1,25 +1,24 @@
 /**
- * Vercel Cron Function — SoundtrackDB Playlist Health Check
+ * Vercel Cron route handler — SoundtrackDB Playlist Health Check
  *
- * Scheduled via vercel.json to run weekly (Sunday 02:00 UTC).
- * Can also be triggered manually: GET /api/cron-health-check
- * with header: Authorization: Bearer <CRON_SECRET>
- *
- * Returns a JSON summary of checked/alive/dead playlists.
+ * Route: GET /cron/health-check
+ * Triggered by Vercel Cron (configured in vercel.json) or manual GET request.
+ * Secret: Authorization: Bearer <CRON_SECRET> header or ?secret=<CRON_SECRET> query param.
  */
 
-require('../src/services/soundtrack-db'); // ensure dotenv is loaded via the service
-const { db, initDb } = require('../src/services/soundtrack-db');
-const { getToken } = require('../src/token-manager');
+const express = require('express');
+const router = express.Router();
+const { db, initDb } = require('../services/soundtrack-db');
+const { getToken } = require('../token-manager');
 
-const CRON_SECRET = process.env.CRON_SECRET;
+router.get('/health-check', async (req, res) => {
+  const cronSecret = process.env.CRON_SECRET;
 
-module.exports = async function handler(req, res) {
-  // ── Auth: require CRON_SECRET on non-Vercel-internal calls ───────────────────
-  if (CRON_SECRET) {
+  if (cronSecret) {
     const authHeader = req.headers['authorization'] || '';
-    const provided = authHeader.replace(/^Bearer\s+/i, '').trim();
-    if (provided !== CRON_SECRET) {
+    const tokenFromHeader = authHeader.replace(/^Bearer\s+/i, '').trim();
+    const tokenFromQuery = req.query.secret || '';
+    if (tokenFromHeader !== cronSecret && tokenFromQuery !== cronSecret) {
       return res.status(401).json({ success: false, error: 'Unauthorized' });
     }
   }
@@ -82,7 +81,6 @@ module.exports = async function handler(req, res) {
         } else if (spotifyRes.status === 404) {
           reason = '404 not found';
         } else {
-          // 401/429 etc — skip, don't flip is_active
           results.skipped++;
           results.details.push({ id, status: 'skipped', http: spotifyRes.status });
           continue;
@@ -121,4 +119,6 @@ module.exports = async function handler(req, res) {
     console.error('[cron-health-check] Fatal:', err.message);
     return res.status(500).json({ success: false, error: 'Health check failed: ' + err.message });
   }
-};
+});
+
+module.exports = router;

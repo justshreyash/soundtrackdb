@@ -87,6 +87,9 @@ app.use('/api/artist', require('./routes/artist'));
 app.use('/v1', rateLimit);
 app.use('/v1/titles', require('./routes/v1-titles'));
 
+// Cron routes
+app.use('/cron', require('./routes/cron'));
+
 // Root route - serve index.html
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
@@ -110,8 +113,14 @@ app.use((err, req, res, next) => {
   respondError(res, 500, 'Internal server error.');
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
+// Start server locally or export for Vercel Serverless Function
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Server running at http://localhost:${PORT}`);
+    startScheduler(REFRESH_INTERVAL);
+  });
+} else {
   startScheduler(REFRESH_INTERVAL);
-});
+}
+
+module.exports = app;

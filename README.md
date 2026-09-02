@@ -1,14 +1,14 @@
-# Sportify API
+# SoundTrackDB
 
-> **Free, unlimited Spotify music data API. No API key, no OAuth, no sign-up required.**
+> **Free, unlimited Spotify music data & Movie Soundtrack API. No API key, no OAuth, no sign-up required.**
 
-**Live API:** 
+**Live API:** [https://soundtrackdb.vercel.app](https://soundtrackdb.vercel.app)
 
 ---
 
 ## What Is This?
 
-Sportify API is a free public REST API that gives developers instant access to Spotify music catalogue data — tracks, albums, artists, playlists and search — without needing a Spotify developer account, API key, or OAuth flow.
+SoundTrackDB is a free public REST API that gives developers instant access to Spotify music catalogue data and movie/TV soundtrack mappings — tracks, albums, artists, playlists, titles and search — without needing a Spotify developer account, API key, or OAuth flow.
 
 It works by combining three data sources, falling through them in order until a result is found:
 
@@ -16,7 +16,7 @@ It works by combining three data sources, falling through them in order until a 
 2. **Spotify Partner GraphQL** — calls the internal Spotify GraphQL API using a TOTP-generated web-player token, used for search and richer playlist data (followers, owner info)
 3. **MusicBrainz + Wikidata fallback** — for artist and album lookups, queries the MusicBrainz URL API and Wikidata SPARQL (properties P1902 for artists, P1729 for albums) to resolve IDs when direct embeds are unavailable
 
-Built and maintained by **cnf1g** under the **CNF1G** umbrella.
+Built and maintained by **cnf1g** and **shreyash** under the **CNF1G** umbrella.
 
 ---
 
@@ -41,22 +41,22 @@ No setup, no keys. Call the API directly:
 
 ```bash
 # Search for a track
-curl "https://sportify.xcasper.space/api/search?q=Faded&type=track&limit=5"
+curl "https://soundtrackdb.vercel.app/api/search?q=Faded&type=track&limit=5"
 
 # Get a track by Spotify ID
-curl "https://sportify.xcasper.space/api/track/3n3Ppam7vgaVa1iaRUIOKE"
+curl "https://soundtrackdb.vercel.app/api/track/3n3Ppam7vgaVa1iaRUIOKE"
 
 # Get album details (After Hours - The Weeknd)
-curl "https://sportify.xcasper.space/api/album/4yP0hdKOZPNshxUOjY0cZj"
+curl "https://soundtrackdb.vercel.app/api/album/4yP0hdKOZPNshxUOjY0cZj"
 
 # Get artist profile (Alan Walker)
-curl "https://sportify.xcasper.space/api/artist/7vk5e3vY1uw9plTHJAMwjN"
+curl "https://soundtrackdb.vercel.app/api/artist/7vk5e3vY1uw9plTHJAMwjN"
 
 # Get artist top tracks
-curl "https://sportify.xcasper.space/api/artist/7vk5e3vY1uw9plTHJAMwjN/top-tracks"
+curl "https://soundtrackdb.vercel.app/api/artist/7vk5e3vY1uw9plTHJAMwjN/top-tracks"
 
 # Get a playlist (RapCaviar)
-curl "https://sportify.xcasper.space/api/playlist/37i9dQZF1DX0XUsuxWHRQd"
+curl "https://soundtrackdb.vercel.app/api/playlist/37i9dQZF1DX0XUsuxWHRQd"
 ```
 
 ---
@@ -222,7 +222,7 @@ Once you have the token you can call any of Spotify's public `/v1` endpoints you
 
 ```bash
 # Step 1: grab the token
-TOKEN=$(curl -s https://sportify.xcasper.space/api/token \
+TOKEN=$(curl -s https://soundtrackdb.vercel.app/api/token \
   | python3 -c "import sys,json; print(json.load(sys.stdin)['token'])")
 
 # Step 2: use it with Spotify's API
@@ -243,7 +243,7 @@ curl -H "Authorization: Bearer $TOKEN" \
 
 ```js
 async function getToken() {
-  const res = await fetch('https://sportify.xcasper.space/api/token');
+  const res = await fetch('https://soundtrackdb.vercel.app/api/token');
   const data = await res.json();
   return data.token;
 }
@@ -264,7 +264,7 @@ async function searchSpotify(query) {
 import requests
 
 def get_token():
-    r = requests.get('https://sportify.xcasper.space/api/token')
+    r = requests.get('https://soundtrackdb.vercel.app/api/token')
     return r.json()['token']
 
 def search_spotify(query):
@@ -287,7 +287,7 @@ let _expiresAt = 0;
 
 async function getToken() {
   if (_token && Date.now() < _expiresAt) return _token;
-  const res = await fetch('https://sportify.xcasper.space/api/token');
+  const res = await fetch('https://soundtrackdb.vercel.app/api/token');
   const { token, expiresIn } = await res.json();
   _token = token;
   _expiresAt = Date.now() + (expiresIn - 60) * 1000; // refresh 60s before expiry
@@ -325,8 +325,8 @@ Create a `.env` file (see `.env.example`):
 ### Run Locally
 
 ```bash
-git clone https://github.com/Casper-Tech-ke/sportify-api.git
-cd sportify-api
+git clone https://github.com/justshreyash/soundtrackdb.git
+cd soundtrackdb
 npm install
 npm start
 ```
@@ -335,7 +335,7 @@ npm start
 
 ```bash
 npm install -g pm2
-pm2 start src/index.js --name sportify-api
+pm2 start src/index.js --name soundtrackdb
 pm2 save
 pm2 startup
 ```
@@ -345,9 +345,7 @@ pm2 startup
 ## Project Structure
 
 ```
-sptfy-api/
-├── api/
-│   └── cron-health-check.js  - Vercel Cron function (weekly playlist health check)
+soundtrackdb/
 ├── src/
 │   ├── index.js              - Express server entry point and route registration
 │   ├── token-manager.js      - Token cache, TOTP auth and refresh scheduler
