@@ -3,6 +3,7 @@ const express = require('express');
 const path = require('path');
 const { startScheduler, getToken } = require('./token-manager');
 const { respond, respondError, PROVIDER, CREATOR } = require('./response');
+const { rateLimit } = require('./middleware/rate-limit');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -11,16 +12,9 @@ const REFRESH_INTERVAL = parseInt(process.env.REFRESH_INTERVAL_MINUTES || '30');
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
-// CORS middleware
-app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(204);
-  }
-  next();
-});
+// Preflight no-op — OPTIONS requests always succeed with 204
+// No CORS wildcard: this is a server-to-server API, not browser-accessible.
+app.options('*', (req, res) => res.sendStatus(204));
 
 // GET /api documentation
 app.get('/api', (req, res) => {
@@ -77,7 +71,8 @@ app.get('/api/token', async (req, res) => {
       },
     });
   } catch (err) {
-    respondError(res, 500, err.message);
+    console.error('[/api/token] Token fetch error:', err.message);
+    respondError(res, 500, 'Internal server error.');
   }
 });
 
@@ -88,7 +83,8 @@ app.use('/api/album', require('./routes/album'));
 app.use('/api/playlist', require('./routes/playlist'));
 app.use('/api/artist', require('./routes/artist'));
 
-// Movie Soundtrack API v1 Routes
+// Movie Soundtrack API v1 Routes — rate-limit wired here (no-op in dev)
+app.use('/v1', rateLimit);
 app.use('/v1/titles', require('./routes/v1-titles'));
 
 // Root route - serve index.html
@@ -99,6 +95,19 @@ app.get('/', (req, res) => {
 // 404 handler
 app.use((req, res) => {
   respondError(res, 404, 'Endpoint not found. See /api for available endpoints.');
+});
+
+// Global error handler — MUST be last, MUST have 4 params (err, req, res, next)
+// Never exposes err.message or stack traces in production.
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  const isDev = process.env.NODE_ENV !== 'production';
+  if (isDev) {
+    console.error('[Unhandled Error]', err.stack || err.message);
+  } else {
+    console.error('[Unhandled Error]', err.message);
+  }
+  respondError(res, 500, 'Internal server error.');
 });
 
 // Start server

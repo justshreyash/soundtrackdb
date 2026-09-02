@@ -18,6 +18,8 @@ const db = createClient({
 
 let isInitialized = false;
 
+// ─── Normalization helpers ────────────────────────────────────────────────────
+
 function normalizeImdb(id) {
   if (!id) return null;
   const match = String(id).trim().toLowerCase().match(/tt\d+/);
@@ -38,52 +40,85 @@ function normalizeSlug(slug) {
     .replace(/\s+/g, '-');
 }
 
-/**
- * Initialize Turso tables and indexes.
- */
+// ─── Confidence table (source × verified → confidence) ───────────────────────
+// | source    | verified | confidence |
+// | official  | 1        | 1.0        |
+// | community | 1        | 0.8        |
+// | official  | 0        | 0.6        |
+// | community | 0        | 0.4        |
+function computeConfidence(source, verified) {
+  const s = (source || 'official').toLowerCase();
+  const v = verified ? 1 : 0;
+  if (s === 'official' && v) return 1.0;
+  if (s === 'community' && v) return 0.8;
+  if (s === 'official' && !v) return 0.6;
+  return 0.4; // community, unverified
+}
+
+// ─── DB initialization (idempotent — safe to call on every startup) ───────────
+
 async function initDb() {
   if (isInitialized) return;
 
+  await db.execute('PRAGMA foreign_keys = ON;');
+
   await db.execute(`
     CREATE TABLE IF NOT EXISTS titles (
-      id TEXT PRIMARY KEY,
-      title TEXT NOT NULL,
-      year INTEGER,
-      type TEXT DEFAULT 'movie',
-      imdb_id TEXT UNIQUE,
-      tmdb_id TEXT UNIQUE,
-      slug TEXT UNIQUE,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      id          text PRIMARY KEY,
+      title       text NOT NULL,
+      year        integer,
+      type        text DEFAULT 'movie' CHECK (type IN ('movie', 'tv')),
+      imdb_id     text UNIQUE,
+      tmdb_id     text UNIQUE,
+      slug        text UNIQUE NOT NULL,
+      created_at  numeric DEFAULT CURRENT_TIMESTAMP,
+      updated_at  numeric DEFAULT CURRENT_TIMESTAMP
     );
   `);
 
-  await db.execute(`CREATE INDEX IF NOT EXISTS idx_titles_imdb ON titles(imdb_id);`);
-  await db.execute(`CREATE INDEX IF NOT EXISTS idx_titles_tmdb ON titles(tmdb_id);`);
-  await db.execute(`CREATE INDEX IF NOT EXISTS idx_titles_slug ON titles(slug);`);
+  await db.execute(`CREATE INDEX IF NOT EXISTS idx_titles_slug   ON titles (slug);`);
+  await db.execute(`CREATE INDEX IF NOT EXISTS idx_titles_tmdb   ON titles (tmdb_id);`);
+  await db.execute(`CREATE INDEX IF NOT EXISTS idx_titles_imdb   ON titles (imdb_id);`);
+  await db.execute(`CREATE INDEX IF NOT EXISTS idx_titles_lookup ON titles (title, year);`);
+
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS title_aliases (
+      slug        text PRIMARY KEY,
+      title_id    text NOT NULL REFERENCES titles(id) ON DELETE CASCADE,
+      created_at  numeric DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+  await db.execute(`CREATE INDEX IF NOT EXISTS idx_title_aliases_title ON title_aliases (title_id);`);
 
   await db.execute(`
     CREATE TABLE IF NOT EXISTS soundtracks (
-      id TEXT PRIMARY KEY,
-      title_id TEXT NOT NULL,
-      platform TEXT DEFAULT 'spotify',
-      type TEXT DEFAULT 'playlist',
-      spotify_playlist_id TEXT NOT NULL,
-      spotify_url TEXT NOT NULL,
-      source TEXT DEFAULT 'official',
-      verified INTEGER DEFAULT 1,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      UNIQUE(title_id, spotify_playlist_id)
+      id                    text PRIMARY KEY,
+      title_id              text NOT NULL REFERENCES titles(id) ON DELETE CASCADE,
+      platform              text DEFAULT 'spotify',
+      type                  text DEFAULT 'playlist',
+      spotify_playlist_id   text NOT NULL,
+      spotify_url           text NOT NULL,
+      source                text DEFAULT 'official' CHECK (source IN ('official', 'community')),
+      verified              integer DEFAULT 1,
+      confidence            real DEFAULT 1.0,
+      match_type            text DEFAULT 'exact' CHECK (match_type IN ('exact', 'agnostic')),
+      is_active             integer DEFAULT 1,
+      report_count          integer DEFAULT 0,
+      last_checked_at       numeric,
+      created_at            numeric DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE (title_id, platform, spotify_playlist_id)
     );
   `);
-
-  await db.execute(`CREATE INDEX IF NOT EXISTS idx_soundtracks_title ON soundtracks(title_id);`);
+  await db.execute(`CREATE INDEX IF NOT EXISTS idx_soundtracks_title  ON soundtracks (title_id);`);
+  await db.execute(`CREATE INDEX IF NOT EXISTS idx_soundtracks_active ON soundtracks (is_active);`);
 
   isInitialized = true;
 }
 
 // Auto-run initialization
 initDb().catch(err => console.error('Database initialization error:', err.message));
+
+// ─── Single-row fetchers ──────────────────────────────────────────────────────
 
 async function getTitleById(id) {
   await initDb();
@@ -117,22 +152,42 @@ async function getTitleByTmdb(tmdbId) {
   return res.rows[0] ? formatTitleRow(res.rows[0]) : null;
 }
 
-async function getTitleBySlug(slug) {
+/**
+ * Canonical slug-based lookup — routes through title_aliases, NOT titles.slug directly.
+ * This is the correct lookup path per spec section 4.
+ */
+async function getTitleByAlias(slug) {
   await initDb();
   const norm = normalizeSlug(slug);
   if (!norm) return null;
   const res = await db.execute({
-    sql: 'SELECT * FROM titles WHERE LOWER(slug) = ? LIMIT 1',
+    sql: `SELECT t.* FROM titles t
+          JOIN title_aliases a ON a.title_id = t.id
+          WHERE a.slug = ? LIMIT 1`,
     args: [norm],
   });
   return res.rows[0] ? formatTitleRow(res.rows[0]) : null;
 }
 
+/**
+ * @deprecated Use getTitleByAlias() instead — kept for internal migration compatibility only.
+ */
+async function getTitleBySlug(slug) {
+  return getTitleByAlias(slug);
+}
+
+// ─── Soundtrack fetchers ──────────────────────────────────────────────────────
+
+/**
+ * Returns only active soundtracks (is_active = 1) for a title.
+ */
 async function getSoundtracksForTitle(titleId) {
   await initDb();
   if (!titleId) return [];
   const res = await db.execute({
-    sql: 'SELECT * FROM soundtracks WHERE title_id = ? ORDER BY verified DESC, created_at ASC',
+    sql: `SELECT * FROM soundtracks
+          WHERE title_id = ? AND is_active = 1
+          ORDER BY confidence DESC, verified DESC, created_at ASC`,
     args: [String(titleId)],
   });
   return res.rows.map(formatSoundtrackRow);
@@ -140,8 +195,8 @@ async function getSoundtracksForTitle(titleId) {
 
 async function getAllTitles({ q, year, type, limit = 50, offset = 0 } = {}) {
   await initDb();
-  let whereClauses = [];
-  let args = [];
+  const whereClauses = [];
+  const args = [];
 
   if (year) {
     whereClauses.push('year = ?');
@@ -159,14 +214,12 @@ async function getAllTitles({ q, year, type, limit = 50, offset = 0 } = {}) {
 
   const whereSql = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
 
-  // Get total count
   const countRes = await db.execute({
     sql: `SELECT COUNT(*) as count FROM titles ${whereSql}`,
     args,
   });
   const total = Number(countRes.rows[0]?.count || 0);
 
-  // Get paginated rows
   const queryArgs = [...args, parseInt(limit, 10), parseInt(offset, 10)];
   const rowsRes = await db.execute({
     sql: `SELECT * FROM titles ${whereSql} ORDER BY year DESC, title ASC LIMIT ? OFFSET ?`,
@@ -176,6 +229,8 @@ async function getAllTitles({ q, year, type, limit = 50, offset = 0 } = {}) {
   const titles = rowsRes.rows.map(formatTitleRow);
   return { total, offset: parseInt(offset, 10), limit: parseInt(limit, 10), titles };
 }
+
+// ─── ID generators ────────────────────────────────────────────────────────────
 
 async function generateNextTitleId() {
   const res = await db.execute('SELECT id FROM titles');
@@ -195,40 +250,177 @@ async function generateNextSoundtrackId() {
   return `st-${max + 1}`;
 }
 
-async function syncJsonBackups() {
+// ─── Alias management ─────────────────────────────────────────────────────────
+
+/**
+ * Inserts a title_aliases row if it doesn't already exist.
+ * Always safe to call — silently no-ops if the alias already exists.
+ */
+async function ensureAlias(slug, titleId) {
+  if (!slug || !titleId) return;
+  const norm = normalizeSlug(slug);
+  if (!norm) return;
+  const tid = String(titleId);
+
   try {
-    const allTitlesRes = await db.execute('SELECT * FROM titles ORDER BY CAST(id AS INTEGER) ASC');
-    const allSoundtracksRes = await db.execute("SELECT * FROM soundtracks ORDER BY CAST(REPLACE(id, 'st-', '') AS INTEGER) ASC");
+    const existing = await db.execute({
+      sql: 'SELECT title_id FROM title_aliases WHERE slug = ? LIMIT 1',
+      args: [norm],
+    });
 
-    const titlesList = allTitlesRes.rows.map(formatTitleRow);
-    const soundtracksList = allSoundtracksRes.rows.map(formatSoundtrackRow);
+    if (existing.rows.length > 0) {
+      const currentTitleId = String(existing.rows[0].title_id);
+      if (currentTitleId !== tid) {
+        console.warn(
+          `[Alias Conflict] Slug "${norm}" already maps to title_id ${currentTitleId}. Ignoring assignment attempt to title_id ${tid}.`
+        );
+      }
+      return;
+    }
 
-    const titlesPath = path.join(DATA_DIR, 'titles.json');
-    const soundtracksPath = path.join(DATA_DIR, 'soundtracks.json');
-
-    fs.writeFileSync(titlesPath, JSON.stringify(titlesList, null, 2), 'utf8');
-    fs.writeFileSync(soundtracksPath, JSON.stringify(soundtracksList, null, 2), 'utf8');
+    await db.execute({
+      sql: 'INSERT INTO title_aliases (slug, title_id) VALUES (?, ?)',
+      args: [norm, tid],
+    });
   } catch (err) {
-    // Non-fatal backup warning
-    console.warn('JSON backup sync skipped:', err.message);
+    console.warn(`[Alias Error] Could not register alias "${norm}" for title ${tid}:`, err.message);
   }
 }
 
-async function insertOrUpdateTitle(data) {
+/**
+ * Increment report_count for a soundtrack.
+ * If report_count reaches threshold (5), auto-deactivates the soundtrack (is_active = 0).
+ */
+async function reportSoundtrack(soundtrackId) {
+  await initDb();
+  const stId = String(soundtrackId);
+
+  const check = await db.execute({
+    sql: 'SELECT id, title_id, report_count, is_active FROM soundtracks WHERE id = ?',
+    args: [stId],
+  });
+
+  if (check.rows.length === 0) return null;
+
+  const currentCount = Number(check.rows[0].report_count || 0);
+  const newCount = currentCount + 1;
+  const shouldDeactivate = newCount >= 5;
+
+  await db.execute({
+    sql: `UPDATE soundtracks
+          SET report_count = ?,
+              is_active = CASE WHEN ? >= 5 THEN 0 ELSE is_active END
+          WHERE id = ?`,
+    args: [newCount, newCount, stId],
+  });
+
+  return {
+    id: stId,
+    title_id: String(check.rows[0].title_id),
+    report_count: newCount,
+    is_active: shouldDeactivate ? false : Boolean(Number(check.rows[0].is_active)),
+    deactivated: shouldDeactivate,
+  };
+}
+
+
+// ─── Core dedupe function (spec section 3) ────────────────────────────────────
+
+/**
+ * The required 4-step title resolution & creation function.
+ * Prevents duplicate title rows by checking tmdb_id → imdb_id → title+year
+ * before ever doing an INSERT.
+ *
+ * Returns { title, isNew, matchType } where matchType is 'exact' or 'agnostic'.
+ */
+async function resolveOrCreateTitle(input) {
   await initDb();
 
-  let existing = null;
-  if (data.imdb_id) existing = await getTitleByImdb(data.imdb_id);
-  if (!existing && data.tmdb_id) existing = await getTitleByTmdb(data.tmdb_id);
-  if (!existing && data.slug) existing = await getTitleBySlug(data.slug);
-  if (!existing && data.id) existing = await getTitleById(data.id);
+  const {
+    tmdb_id: rawTmdb,
+    imdb_id: rawImdb,
+    title: rawTitle,
+    year: rawYear,
+    type: rawType,
+    slug: rawSlug,
+    id: hintId,
+  } = input;
 
-  if (existing) {
+  const tmdb_id = normalizeTmdb(rawTmdb);
+  const imdb_id = normalizeImdb(rawImdb);
+  const year    = rawYear ? parseInt(rawYear, 10) : null;
+  const type    = rawType || 'movie';
+  const slug    = normalizeSlug(rawSlug) || normalizeSlug(`${rawTitle || ''}-${year || new Date().getFullYear()}`);
+
+  // Step 1: tmdb_id lookup
+  if (tmdb_id) {
+    const existing = await getTitleByTmdb(tmdb_id);
+    if (existing) {
+      await ensureAlias(slug, existing.id);
+      return { title: existing, isNew: false, matchType: 'exact' };
+    }
+  }
+
+  // Step 2: imdb_id lookup
+  if (imdb_id) {
+    const existing = await getTitleByImdb(imdb_id);
+    if (existing) {
+      await ensureAlias(slug, existing.id);
+      return { title: existing, isNew: false, matchType: 'exact' };
+    }
+  }
+
+  // Step 3: normalized title + year lookup (agnostic)
+  // Strips ALL non-alphanumeric chars so "Mr.Kill" == "mr kill" == "mr-kill" == "mrkill"
+  if (rawTitle && year) {
+    const normalized = String(rawTitle).trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+    const res = await db.execute({
+      sql: `SELECT * FROM titles
+            WHERE LOWER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(title,'.',''),'-',''),' ',''),',',''),'''','')) = ? AND year = ?
+            LIMIT 1`,
+      args: [normalized, year],
+    });
+    if (res.rows[0]) {
+      const existing = formatTitleRow(res.rows[0]);
+      await ensureAlias(slug, existing.id);
+      return { title: existing, isNew: false, matchType: 'agnostic' };
+    }
+  }
+
+
+  // Step 4: Nothing found — insert a new canonical titles row
+  const id = hintId ? String(hintId) : await generateNextTitleId();
+  const canonicalSlug = slug || normalizeSlug(`${rawTitle || 'unknown'}-${year || new Date().getFullYear()}`);
+
+  await db.execute({
+    sql: `INSERT INTO titles (id, title, year, type, imdb_id, tmdb_id, slug)
+          VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    args: [id, rawTitle || '', year, type, imdb_id || null, tmdb_id || null, canonicalSlug],
+  });
+
+  // Backfill canonical slug into title_aliases
+  await ensureAlias(canonicalSlug, id);
+
+  await syncJsonBackups();
+  const created = await getTitleById(id);
+  return { title: created, isNew: true, matchType: 'exact' };
+}
+
+/**
+ * Legacy alias kept for backward compatibility with scripts that call insertOrUpdateTitle.
+ * Internally delegates to resolveOrCreateTitle.
+ */
+async function insertOrUpdateTitle(data) {
+  const result = await resolveOrCreateTitle(data);
+
+  // If title already existed, patch any newly-provided fields (tmdb_id, imdb_id, etc.)
+  if (!result.isNew) {
+    const existing = result.title;
+    const updatedImdb = data.imdb_id ? normalizeImdb(data.imdb_id) : (existing.imdb_id || null);
+    const updatedTmdb = data.tmdb_id ? normalizeTmdb(data.tmdb_id) : (existing.tmdb_id || null);
     const updatedTitle = data.title || existing.title;
     const updatedYear = data.year ? parseInt(data.year, 10) : existing.year;
     const updatedType = data.type || existing.type;
-    const updatedImdb = data.imdb_id ? normalizeImdb(data.imdb_id) : (existing.imdb_id || null);
-    const updatedTmdb = data.tmdb_id ? normalizeTmdb(data.tmdb_id) : (existing.tmdb_id || null);
     const updatedSlug = data.slug ? normalizeSlug(data.slug) : (existing.slug || null);
 
     await db.execute({
@@ -241,49 +433,48 @@ async function insertOrUpdateTitle(data) {
     return { title: refreshed, isNew: false };
   }
 
-  const id = data.id ? String(data.id) : await generateNextTitleId();
-  const title = data.title || '';
-  const year = parseInt(data.year, 10) || new Date().getFullYear();
-  const type = data.type || 'movie';
-  const imdb_id = normalizeImdb(data.imdb_id) || null;
-  const tmdb_id = normalizeTmdb(data.tmdb_id) || null;
-  const slug = normalizeSlug(data.slug) || normalizeSlug(`${title}-${year}`);
-
-  await db.execute({
-    sql: `INSERT INTO titles (id, title, year, type, imdb_id, tmdb_id, slug) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    args: [id, title, year, type, imdb_id, tmdb_id, slug],
-  });
-
-  await syncJsonBackups();
-  const created = await getTitleById(id);
-  return { title: created, isNew: true };
+  return { title: result.title, isNew: result.isNew };
 }
+
+// ─── Soundtrack insert / remove / override ───────────────────────────────────
 
 async function insertSoundtrack(data) {
   await initDb();
-  const titleId = String(data.title_id);
+  const titleId  = String(data.title_id);
   const playlistId = data.spotify_playlist_id;
+  const platform = data.platform || 'spotify';
 
-  // Check if mapping already exists
+  // Check if mapping already exists (UNIQUE constraint covers this but we want the row back)
   const existingRes = await db.execute({
-    sql: 'SELECT * FROM soundtracks WHERE title_id = ? AND spotify_playlist_id = ? LIMIT 1',
-    args: [titleId, playlistId],
+    sql: 'SELECT * FROM soundtracks WHERE title_id = ? AND platform = ? AND spotify_playlist_id = ? LIMIT 1',
+    args: [titleId, platform, playlistId],
   });
 
   if (existingRes.rows.length > 0) {
     return { soundtrack: formatSoundtrackRow(existingRes.rows[0]), isNew: false };
   }
 
-  const id = data.id ? String(data.id) : await generateNextSoundtrackId();
-  const platform = data.platform || 'spotify';
-  const type = data.type || 'playlist';
-  const spotify_url = data.spotify_url || (type === 'album' ? `https://open.spotify.com/album/${playlistId}` : `https://open.spotify.com/playlist/${playlistId}`);
-  const source = data.source || 'official';
-  const verified = data.verified !== undefined ? (data.verified ? 1 : 0) : 1;
+  const id         = data.id ? String(data.id) : await generateNextSoundtrackId();
+  const type       = data.type || 'playlist';
+  const source     = data.source || 'official';
+  const verified   = data.verified !== undefined ? (data.verified ? 1 : 0) : 1;
+  const matchType  = data.match_type || 'exact';
+  const confidence = data.confidence !== undefined ? data.confidence : computeConfidence(source, verified);
+  const spotify_url = data.spotify_url || (type === 'album'
+    ? `https://open.spotify.com/album/${playlistId}`
+    : `https://open.spotify.com/playlist/${playlistId}`);
+
+  // Warn if official+unverified (per spec: flag for manual review)
+  if (source === 'official' && !verified) {
+    console.warn(`insertSoundtrack: official but unverified soundtrack for title_id=${titleId} — flagged for manual review.`);
+  }
 
   await db.execute({
-    sql: `INSERT INTO soundtracks (id, title_id, platform, type, spotify_playlist_id, spotify_url, source, verified) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-    args: [id, titleId, platform, type, playlistId, spotify_url, source, verified],
+    sql: `INSERT INTO soundtracks
+            (id, title_id, platform, type, spotify_playlist_id, spotify_url,
+             source, verified, confidence, match_type, is_active)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`,
+    args: [id, titleId, platform, type, playlistId, spotify_url, source, verified, confidence, matchType],
   });
 
   await syncJsonBackups();
@@ -329,6 +520,29 @@ async function overrideSoundtrackForTitle(titleId, newSoundtrackData) {
   });
 }
 
+// ─── JSON backup ──────────────────────────────────────────────────────────────
+
+async function syncJsonBackups() {
+  try {
+    const allTitlesRes = await db.execute('SELECT * FROM titles ORDER BY CAST(id AS INTEGER) ASC');
+    const allSoundtracksRes = await db.execute("SELECT * FROM soundtracks ORDER BY CAST(REPLACE(id, 'st-', '') AS INTEGER) ASC");
+
+    const titlesList = allTitlesRes.rows.map(formatTitleRow);
+    const soundtracksList = allSoundtracksRes.rows.map(formatSoundtrackRow);
+
+    const titlesPath = path.join(DATA_DIR, 'titles.json');
+    const soundtracksPath = path.join(DATA_DIR, 'soundtracks.json');
+
+    fs.writeFileSync(titlesPath, JSON.stringify(titlesList, null, 2), 'utf8');
+    fs.writeFileSync(soundtracksPath, JSON.stringify(soundtracksList, null, 2), 'utf8');
+  } catch (err) {
+    // Non-fatal backup warning
+    console.warn('JSON backup sync skipped:', err.message);
+  }
+}
+
+// ─── Row formatters ───────────────────────────────────────────────────────────
+
 function formatTitleRow(row) {
   return {
     id: String(row.id),
@@ -342,6 +556,8 @@ function formatTitleRow(row) {
 }
 
 function formatSoundtrackRow(row) {
+  const verified = row.verified !== undefined ? Boolean(Number(row.verified)) : true;
+  const source   = String(row.source || 'official');
   return {
     id: String(row.id),
     title_id: String(row.title_id),
@@ -349,26 +565,38 @@ function formatSoundtrackRow(row) {
     type: String(row.type || 'playlist'),
     spotify_playlist_id: String(row.spotify_playlist_id),
     spotify_url: String(row.spotify_url),
-    source: String(row.source || 'official'),
-    verified: Boolean(row.verified),
+    source,
+    verified,
+    confidence: row.confidence !== undefined && row.confidence !== null ? Number(row.confidence) : computeConfidence(source, verified),
+    match_type: String(row.match_type || 'exact'),
+    is_active: row.is_active !== undefined ? Boolean(Number(row.is_active)) : true,
   };
 }
+
+// ─── Exports ──────────────────────────────────────────────────────────────────
 
 module.exports = {
   db,
   initDb,
-  syncJsonBackups,
+  // Title fetchers
   getTitleById,
   getTitleByImdb,
   getTitleByTmdb,
-  getTitleBySlug,
+  getTitleByAlias,
+  getTitleBySlug, // deprecated alias → getTitleByAlias
+  // Soundtrack fetchers
   getSoundtracksForTitle,
   getAllTitles,
-  insertOrUpdateTitle,
+  // Core dedupe
+  resolveOrCreateTitle,
+  insertOrUpdateTitle, // legacy wrapper → resolveOrCreateTitle
+  // Alias management
+  ensureAlias,
+  // Soundtrack ops
   insertSoundtrack,
   removeSoundtracksByTitleId,
   overrideSoundtrackForTitle,
-  normalizeImdb,
-  normalizeTmdb,
-  normalizeSlug,
+  reportSoundtrack,
 };
+
+

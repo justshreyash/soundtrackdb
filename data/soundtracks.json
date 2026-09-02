@@ -7,7 +7,10 @@
     "spotify_playlist_id": "6QlxaUG3pKLPJPzoWEhZuG",
     "spotify_url": "https://open.spotify.com/playlist/6QlxaUG3pKLPJPzoWEhZuG",
     "source": "official",
-    "verified": true
+    "verified": true,
+    "confidence": 1,
+    "match_type": "exact",
+    "is_active": true
   },
   {
     "id": "st-2",
@@ -17,7 +20,10 @@
     "spotify_playlist_id": "4ELkRqKThShCLqkkQ1xRY0",
     "spotify_url": "https://open.spotify.com/playlist/4ELkRqKThShCLqkkQ1xRY0",
     "source": "community",
-    "verified": true
+    "verified": true,
+    "confidence": 0.8,
+    "match_type": "exact",
+    "is_active": true
   },
   {
     "id": "st-3",
@@ -27,7 +33,10 @@
     "spotify_playlist_id": "4fX2bvwSPBMvjsoykfBC4b",
     "spotify_url": "https://open.spotify.com/playlist/4fX2bvwSPBMvjsoykfBC4b",
     "source": "official",
-    "verified": true
+    "verified": true,
+    "confidence": 1,
+    "match_type": "exact",
+    "is_active": true
   },
   {
     "id": "st-4",
@@ -37,7 +46,10 @@
     "spotify_playlist_id": "7BfVddL90xCsiY2mbpJ7q8",
     "spotify_url": "https://open.spotify.com/playlist/7BfVddL90xCsiY2mbpJ7q8",
     "source": "official",
-    "verified": true
+    "verified": true,
+    "confidence": 1,
+    "match_type": "exact",
+    "is_active": true
   },
   {
     "id": "st-5",
@@ -47,7 +59,10 @@
     "spotify_playlist_id": "3OsavfWvvV3ZwyJiHKkvDH",
     "spotify_url": "https://open.spotify.com/playlist/3OsavfWvvV3ZwyJiHKkvDH",
     "source": "community",
-    "verified": true
+    "verified": true,
+    "confidence": 0.8,
+    "match_type": "exact",
+    "is_active": true
   },
   {
     "id": "st-6",
@@ -57,7 +72,10 @@
     "spotify_playlist_id": "7ffbFydfE8ASQyb8r1cmkw",
     "spotify_url": "https://open.spotify.com/playlist/7ffbFydfE8ASQyb8r1cmkw",
     "source": "official",
-    "verified": true
+    "verified": true,
+    "confidence": 1,
+    "match_type": "exact",
+    "is_active": true
   },
   {
     "id": "st-7",
@@ -67,7 +85,10 @@
     "spotify_playlist_id": "37i9dQZF1DX6fD5Xl1qL3I",
     "spotify_url": "https://open.spotify.com/playlist/37i9dQZF1DX6fD5Xl1qL3I",
     "source": "community",
-    "verified": true
+    "verified": true,
+    "confidence": 0.8,
+    "match_type": "exact",
+    "is_active": true
   },
   {
     "id": "st-8",
@@ -77,7 +98,10 @@
     "spotify_playlist_id": "37i9dQZF1DXcBWIGoYBM5M",
     "spotify_url": "https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M",
     "source": "official",
-    "verified": true
+    "verified": true,
+    "confidence": 1,
+    "match_type": "exact",
+    "is_active": true
   },
   {
     "id": "st-9",
@@ -87,7 +111,10 @@
     "spotify_playlist_id": "37i9dQZF1DWZUAi3t0vN54",
     "spotify_url": "https://open.spotify.com/playlist/37i9dQZF1DWZUAi3t0vN54",
     "source": "official",
-    "verified": true
+    "verified": true,
+    "confidence": 1,
+    "match_type": "exact",
+    "is_active": true
   },
   {
     "id": "st-10",
@@ -97,7 +124,10 @@
     "spotify_playlist_id": "37i9dQZF1DX6Xq4j1b1w8k",
     "spotify_url": "https://open.spotify.com/playlist/37i9dQZF1DX6Xq4j1b1w8k",
     "source": "official",
-    "verified": true
+    "verified": true,
+    "confidence": 1,
+    "match_type": "exact",
+    "is_active": true
   },
   {
     "id": "st-11",
@@ -107,7 +137,10 @@
     "spotify_playlist_id": "37i9dQZF1DX0XUsuxWHRQd",
     "spotify_url": "https://open.spotify.com/playlist/37i9dQZF1DX0XUsuxWHRQd",
     "source": "official",
-    "verified": true
+    "verified": true,
+    "confidence": 1,
+    "match_type": "exact",
+    "is_active": true
   },
   {
     "id": "st-12",
@@ -117,7 +150,10 @@
     "spotify_playlist_id": "37i9dQZF1DX4sWSpwq3LiO",
     "spotify_url": "https://open.spotify.com/playlist/37i9dQZF1DX4sWSpwq3LiO",
     "source": "community",
-    "verified": true
+    "verified": true,
+    "confidence": 0.8,
+    "match_type": "exact",
+    "is_active": true
   },
   {
     "id": "st-13",
@@ -127,7 +163,10 @@
     "spotify_playlist_id": "37i9dQZF1DX1lVhptIYRda",
     "spotify_url": "https://open.spotify.com/playlist/37i9dQZF1DX1lVhptIYRda",
     "source": "community",
-    "verified": true
+    "verified": true,
+    "confidence": 0.8,
+    "match_type": "exact",
+    "is_active": true
   },
   {
     "id": "st-14",
@@ -137,7 +176,10 @@
     "spotify_playlist_id": "37i9dQZF1DX4WYpdgoIcn6",
     "spotify_url": "https://open.spotify.com/playlist/37i9dQZF1DX4WYpdgoIcn6",
     "source": "official",
-    "verified": true
+    "verified": true,
+    "confidence": 1,
+    "match_type": "exact",
+    "is_active": true
   },
   {
     "id": "st-15",
@@ -147,7 +189,10 @@
     "spotify_playlist_id": "37i9dQZF1DX2sUQwD7tbmL",
     "spotify_url": "https://open.spotify.com/playlist/37i9dQZF1DX2sUQwD7tbmL",
     "source": "official",
-    "verified": true
+    "verified": true,
+    "confidence": 1,
+    "match_type": "exact",
+    "is_active": true
   },
   {
     "id": "st-16",
@@ -157,7 +202,10 @@
     "spotify_playlist_id": "37i9dQZF1DX3rxVfibe1L0",
     "spotify_url": "https://open.spotify.com/playlist/37i9dQZF1DX3rxVfibe1L0",
     "source": "community",
-    "verified": true
+    "verified": true,
+    "confidence": 0.8,
+    "match_type": "exact",
+    "is_active": true
   },
   {
     "id": "st-17",
@@ -167,7 +215,10 @@
     "spotify_playlist_id": "37i9dQZF1DXbTxeAdrVG2l",
     "spotify_url": "https://open.spotify.com/playlist/37i9dQZF1DXbTxeAdrVG2l",
     "source": "community",
-    "verified": true
+    "verified": true,
+    "confidence": 0.8,
+    "match_type": "exact",
+    "is_active": true
   },
   {
     "id": "st-18",
@@ -177,7 +228,10 @@
     "spotify_playlist_id": "37i9dQZF1DXdLEN7aqioXM",
     "spotify_url": "https://open.spotify.com/playlist/37i9dQZF1DXdLEN7aqioXM",
     "source": "community",
-    "verified": true
+    "verified": true,
+    "confidence": 0.8,
+    "match_type": "exact",
+    "is_active": true
   },
   {
     "id": "st-19",
@@ -187,7 +241,10 @@
     "spotify_playlist_id": "37i9dQZF1DWZeKCadgRdKQ",
     "spotify_url": "https://open.spotify.com/playlist/37i9dQZF1DWZeKCadgRdKQ",
     "source": "community",
-    "verified": true
+    "verified": true,
+    "confidence": 0.8,
+    "match_type": "exact",
+    "is_active": true
   },
   {
     "id": "st-20",
@@ -197,7 +254,10 @@
     "spotify_playlist_id": "37i9dQZF1DXcBWIGoYBM5M",
     "spotify_url": "https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M",
     "source": "official",
-    "verified": true
+    "verified": true,
+    "confidence": 1,
+    "match_type": "exact",
+    "is_active": true
   },
   {
     "id": "st-21",
@@ -207,7 +267,10 @@
     "spotify_playlist_id": "37i9dQZF1DX4sWSpwq3LiO",
     "spotify_url": "https://open.spotify.com/playlist/37i9dQZF1DX4sWSpwq3LiO",
     "source": "community",
-    "verified": false
+    "verified": false,
+    "confidence": 0.4,
+    "match_type": "exact",
+    "is_active": true
   },
   {
     "id": "st-22",
@@ -217,7 +280,10 @@
     "spotify_playlist_id": "37i9dQZF1DX1lVhptIYRda",
     "spotify_url": "https://open.spotify.com/playlist/37i9dQZF1DX1lVhptIYRda",
     "source": "official",
-    "verified": true
+    "verified": true,
+    "confidence": 1,
+    "match_type": "exact",
+    "is_active": true
   },
   {
     "id": "st-23",
@@ -227,7 +293,10 @@
     "spotify_playlist_id": "37i9dQZF1DX4WYpdgoIcn6",
     "spotify_url": "https://open.spotify.com/playlist/37i9dQZF1DX4WYpdgoIcn6",
     "source": "community",
-    "verified": false
+    "verified": false,
+    "confidence": 0.4,
+    "match_type": "exact",
+    "is_active": true
   },
   {
     "id": "st-24",
@@ -237,7 +306,10 @@
     "spotify_playlist_id": "37i9dQZF1DX2sUQwD7tbmL",
     "spotify_url": "https://open.spotify.com/playlist/37i9dQZF1DX2sUQwD7tbmL",
     "source": "community",
-    "verified": false
+    "verified": false,
+    "confidence": 0.4,
+    "match_type": "exact",
+    "is_active": true
   },
   {
     "id": "st-25",
@@ -247,7 +319,10 @@
     "spotify_playlist_id": "37i9dQZF1DX0A2zCw46yZ3",
     "spotify_url": "https://open.spotify.com/playlist/37i9dQZF1DX0A2zCw46yZ3",
     "source": "official",
-    "verified": true
+    "verified": true,
+    "confidence": 1,
+    "match_type": "exact",
+    "is_active": true
   },
   {
     "id": "st-26",
@@ -257,7 +332,10 @@
     "spotify_playlist_id": "2KSxZOp2K9Hh0KwC6tF4l0",
     "spotify_url": "https://open.spotify.com/playlist/2KSxZOp2K9Hh0KwC6tF4l0",
     "source": "official",
-    "verified": true
+    "verified": true,
+    "confidence": 1,
+    "match_type": "exact",
+    "is_active": true
   },
   {
     "id": "st-28",
@@ -267,7 +345,10 @@
     "spotify_playlist_id": "3V5ttuuAiVz57qiOGZiXbf",
     "spotify_url": "https://open.spotify.com/playlist/3V5ttuuAiVz57qiOGZiXbf",
     "source": "official",
-    "verified": true
+    "verified": true,
+    "confidence": 1,
+    "match_type": "exact",
+    "is_active": true
   },
   {
     "id": "st-29",
@@ -277,7 +358,10 @@
     "spotify_playlist_id": "3VT4IoLOFhCmTn9VE264a8",
     "spotify_url": "https://open.spotify.com/playlist/3VT4IoLOFhCmTn9VE264a8",
     "source": "community",
-    "verified": false
+    "verified": false,
+    "confidence": 0.4,
+    "match_type": "exact",
+    "is_active": true
   },
   {
     "id": "st-30",
@@ -287,7 +371,10 @@
     "spotify_playlist_id": "2Glv8VS1Bb0Wh18PAz7mbm",
     "spotify_url": "https://open.spotify.com/playlist/2Glv8VS1Bb0Wh18PAz7mbm",
     "source": "official",
-    "verified": true
+    "verified": true,
+    "confidence": 1,
+    "match_type": "exact",
+    "is_active": true
   },
   {
     "id": "st-31",
@@ -297,7 +384,10 @@
     "spotify_playlist_id": "2oSLzFVmcISVLJUzspBlKs",
     "spotify_url": "https://open.spotify.com/playlist/2oSLzFVmcISVLJUzspBlKs",
     "source": "community",
-    "verified": false
+    "verified": false,
+    "confidence": 0.4,
+    "match_type": "exact",
+    "is_active": true
   },
   {
     "id": "st-32",
@@ -307,7 +397,10 @@
     "spotify_playlist_id": "5FE7Hhl6b5zMgocQMD9vmt",
     "spotify_url": "https://open.spotify.com/playlist/5FE7Hhl6b5zMgocQMD9vmt",
     "source": "official",
-    "verified": true
+    "verified": true,
+    "confidence": 1,
+    "match_type": "exact",
+    "is_active": true
   },
   {
     "id": "st-33",
@@ -317,7 +410,10 @@
     "spotify_playlist_id": "1MKvKQ9bAkPTPDImrI1MTX",
     "spotify_url": "https://open.spotify.com/playlist/1MKvKQ9bAkPTPDImrI1MTX",
     "source": "community",
-    "verified": false
+    "verified": false,
+    "confidence": 0.4,
+    "match_type": "exact",
+    "is_active": true
   },
   {
     "id": "st-34",
@@ -327,7 +423,10 @@
     "spotify_playlist_id": "2hVvst2nJuqgMgZbl38VIY",
     "spotify_url": "https://open.spotify.com/playlist/2hVvst2nJuqgMgZbl38VIY",
     "source": "community",
-    "verified": false
+    "verified": false,
+    "confidence": 0.4,
+    "match_type": "exact",
+    "is_active": true
   },
   {
     "id": "st-35",
@@ -337,7 +436,10 @@
     "spotify_playlist_id": "4jJkZ1J6zdSRU7ZJoepAX1",
     "spotify_url": "https://open.spotify.com/playlist/4jJkZ1J6zdSRU7ZJoepAX1",
     "source": "community",
-    "verified": false
+    "verified": false,
+    "confidence": 0.4,
+    "match_type": "exact",
+    "is_active": true
   },
   {
     "id": "st-36",
@@ -347,7 +449,10 @@
     "spotify_playlist_id": "37i9dQZF1DX5cZuTmLftWM",
     "spotify_url": "https://open.spotify.com/playlist/37i9dQZF1DX5cZuTmLftWM",
     "source": "official",
-    "verified": true
+    "verified": true,
+    "confidence": 1,
+    "match_type": "exact",
+    "is_active": true
   },
   {
     "id": "st-37",
@@ -357,27 +462,10 @@
     "spotify_playlist_id": "23YqCEVIK4irq7p7xVyNi3",
     "spotify_url": "https://open.spotify.com/playlist/23YqCEVIK4irq7p7xVyNi3",
     "source": "community",
-    "verified": false
-  },
-  {
-    "id": "st-38",
-    "title_id": "38",
-    "platform": "spotify",
-    "type": "playlist",
-    "spotify_playlist_id": "37i9dQZF1DX5cZuTmLftWM",
-    "spotify_url": "https://open.spotify.com/playlist/37i9dQZF1DX5cZuTmLftWM",
-    "source": "official",
-    "verified": true
-  },
-  {
-    "id": "st-39",
-    "title_id": "39",
-    "platform": "spotify",
-    "type": "playlist",
-    "spotify_playlist_id": "23YqCEVIK4irq7p7xVyNi3",
-    "spotify_url": "https://open.spotify.com/playlist/23YqCEVIK4irq7p7xVyNi3",
-    "source": "community",
-    "verified": false
+    "verified": false,
+    "confidence": 0.4,
+    "match_type": "exact",
+    "is_active": true
   },
   {
     "id": "st-40",
@@ -387,7 +475,10 @@
     "spotify_playlist_id": "5tsAl9B4rp3JXYkCfFciNJ",
     "spotify_url": "https://open.spotify.com/playlist/5tsAl9B4rp3JXYkCfFciNJ",
     "source": "community",
-    "verified": false
+    "verified": false,
+    "confidence": 0.4,
+    "match_type": "exact",
+    "is_active": true
   },
   {
     "id": "st-41",
@@ -397,26 +488,22 @@
     "spotify_playlist_id": "3q9SubKjjhNx9za9vtgcS2",
     "spotify_url": "https://open.spotify.com/playlist/3q9SubKjjhNx9za9vtgcS2",
     "source": "official",
-    "verified": true
+    "verified": true,
+    "confidence": 1,
+    "match_type": "exact",
+    "is_active": true
   },
   {
     "id": "st-42",
     "title_id": "42",
     "platform": "spotify",
     "type": "playlist",
-    "spotify_playlist_id": "37i9dQZF1DX5cZuTmLftWM",
-    "spotify_url": "https://open.spotify.com/playlist/37i9dQZF1DX5cZuTmLftWM",
-    "source": "official",
-    "verified": true
-  },
-  {
-    "id": "st-43",
-    "title_id": "43",
-    "platform": "spotify",
-    "type": "playlist",
-    "spotify_playlist_id": "23YqCEVIK4irq7p7xVyNi3",
-    "spotify_url": "https://open.spotify.com/playlist/23YqCEVIK4irq7p7xVyNi3",
+    "spotify_playlist_id": "4odlNIRYnUZwBTsfuNEkiM",
+    "spotify_url": "https://open.spotify.com/playlist/4odlNIRYnUZwBTsfuNEkiM",
     "source": "community",
-    "verified": false
+    "verified": false,
+    "confidence": 0.4,
+    "match_type": "exact",
+    "is_active": true
   }
 ]

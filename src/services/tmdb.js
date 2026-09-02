@@ -205,7 +205,40 @@ async function fetchImdbMetadata(imdbId) {
   if (!imdbId) return null;
   const cleanImdb = String(imdbId).trim().toLowerCase();
 
-  // Try Wikidata by IMDb ID
+  // 1. Try TMDB API /find/{imdb_id} if API key present (fast & reliable)
+  const apiKey = process.env.TMDB_API_KEY || process.env.TMDB_KEY;
+  if (apiKey) {
+    try {
+      const url = `https://api.themoviedb.org/3/find/${cleanImdb}?api_key=${apiKey}&external_source=imdb_id`;
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 6000);
+      const res = await fetch(url, { signal: ctrl.signal }).finally(() => clearTimeout(t));
+      if (res.ok) {
+        const json = await res.json();
+        const tvHit = json.tv_results?.[0];
+        const movieHit = json.movie_results?.[0];
+        const hit = tvHit || movieHit;
+        if (hit) {
+          const type = tvHit ? 'tv' : 'movie';
+          const title = hit.name || hit.title || hit.original_name || hit.original_title || '';
+          const releaseDate = hit.first_air_date || hit.release_date || '';
+          const year = releaseDate ? parseInt(releaseDate.slice(0, 4), 10) : new Date().getFullYear();
+          if (title) {
+            return {
+              title,
+              year,
+              type,
+              imdb_id: cleanImdb,
+              tmdb_id: String(hit.id),
+              slug: generateSlug(title, year),
+            };
+          }
+        }
+      }
+    } catch {}
+  }
+
+  // 2. Fallback: Wikidata by IMDb ID
   try {
     const sparql = `SELECT ?item ?label ?tmdbMovie ?tmdbTv ?year WHERE {
       ?item wdt:P345 "${cleanImdb}".
@@ -247,6 +280,7 @@ async function fetchImdbMetadata(imdbId) {
 
   return null;
 }
+
 
 /**
  * Search TMDB for a movie or TV show by query, optional year, and media type.

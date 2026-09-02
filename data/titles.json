@@ -321,7 +321,7 @@
     "type": "tv",
     "imdb_id": "",
     "tmdb_id": "",
-    "slug": "test-mdl-drama-1788296665938"
+    "slug": "test-mdl-drama-1788328407589"
   },
   {
     "id": "37",
@@ -331,24 +331,6 @@
     "imdb_id": "",
     "tmdb_id": "",
     "slug": "test-auto-ingest-1788296666643"
-  },
-  {
-    "id": "38",
-    "title": "Test MDL Drama",
-    "year": 2024,
-    "type": "tv",
-    "imdb_id": "",
-    "tmdb_id": "",
-    "slug": "test-mdl-drama-1788296696725"
-  },
-  {
-    "id": "39",
-    "title": "Crash Course in Romance",
-    "year": 2023,
-    "type": "tv",
-    "imdb_id": "",
-    "tmdb_id": "",
-    "slug": "test-auto-ingest-1788296697519"
   },
   {
     "id": "40",
@@ -370,20 +352,11 @@
   },
   {
     "id": "42",
-    "title": "Test MDL Drama",
-    "year": 2024,
+    "title": "Vincenzo",
+    "year": 2021,
     "type": "tv",
-    "imdb_id": "",
-    "tmdb_id": "",
-    "slug": "test-mdl-drama-1788296737983"
-  },
-  {
-    "id": "43",
-    "title": "Crash Course in Romance",
-    "year": 2023,
-    "type": "tv",
-    "imdb_id": "tt24578016",
-    "tmdb_id": "202318",
-    "slug": "crash-course-in-romance-2023"
+    "imdb_id": "tt13433812",
+    "tmdb_id": "117376",
+    "slug": "vincenzo-2021"
   }
 ]

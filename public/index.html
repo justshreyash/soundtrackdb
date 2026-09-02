@@ -730,9 +730,9 @@
     <div class="pills">
       <div class="pill"><b>✓</b> No API Key</div>
       <div class="pill"><b>✓</b> No Sign Up</div>
-      <div class="pill"><b>✓</b> No Rate Limit</div>
+      <div class="pill"><b>✓</b> Fair Use</div>
       <div class="pill"><b>✓</b> Pretty JSON</div>
-      <div class="pill"><b>✓</b> CORS Enabled</div>
+      <div class="pill"><b>✓</b> Server Ready</div>
       <div class="pill"><b>✓</b> HTTPS</div>
     </div>
   </div>
@@ -805,6 +805,13 @@
         <button class="pill" onclick="setSoundtrackDemo('list','')" style="cursor:pointer;background:var(--surface2);">⚡ All 25 Movies</button>
       </div>
       <pre id="stResult" class="result-box"></pre>
+      <!-- Response field legend -->
+      <div style="margin-top:14px;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px;font-size:0.75rem;line-height:1.7;">
+        <span style="color:var(--purple-light);font-weight:700;letter-spacing:1px;font-size:0.68rem;">RESPONSE FIELDS — music[]</span><br>
+        <span style="color:#a78bfa;">confidence</span> <span style="color:var(--muted);">float 0.0–1.0 &nbsp;·&nbsp; 1.0 = official+verified &nbsp;·&nbsp; 0.8 = community+verified &nbsp;·&nbsp; 0.6 = official+unverified &nbsp;·&nbsp; 0.4 = community+unverified</span><br>
+        <span style="color:#a78bfa;">match_type</span> <span style="color:var(--muted);">&quot;exact&quot; = resolved via IMDb/TMDB id &nbsp;·&nbsp; &quot;agnostic&quot; = resolved via title+year text match only</span><br>
+        <span style="color:#a78bfa;">verified</span> <span style="color:var(--muted);">true = manually confirmed or official source &nbsp;·&nbsp; false = auto-matched, not yet confirmed</span>
+      </div>
     </div>
 
     <!-- Endpoint Cards -->
@@ -1026,6 +1033,118 @@
         <div class="code-label">Example</div>
         <div class="code-block">GET /api/artist/3TVXtAsR1Inumwj472S9r4/top-tracks?market=KE<button class="copy-btn"
             onclick="copyCode(this)">Copy</button></div>
+      </div>
+    </div>
+
+    <div class="usage-block" id="doc-v1-soundtrack" style="border-color:#7c3aed44;">
+      <div class="usage-head" onclick="toggleDoc('doc-v1-soundtrack')">
+        <span class="ep-method" style="background:#059669;color:#fff;">V1</span>
+        <span class="usage-path">/v1/titles — Soundtrack API</span>
+        <span class="usage-desc-short">Map movies &amp; TV shows to Spotify playlists</span>
+        <span class="chevron">▶</span>
+      </div>
+      <div class="usage-body">
+        <p style="font-size:0.82rem;color:var(--muted);margin-top:14px;margin-bottom:12px;">Resolves any movie or TV show to its Spotify soundtrack playlist via IMDb ID, TMDB ID, slug, or internal ID. Results are cached in Turso (libSQL) — first call may be slower while auto-ingesting.</p>
+
+        <table class="param-table">
+          <tr><th>Endpoint</th><th>Example</th><th>Description</th></tr>
+          <tr>
+            <td>/v1/titles/imdb/:id/music</td>
+            <td>tt13070038</td>
+            <td>Lookup by IMDb ID (fastest, most accurate)</td>
+          </tr>
+          <tr>
+            <td>/v1/titles/tmdb/:id/music</td>
+            <td>993710</td>
+            <td>Lookup by TMDB numeric ID</td>
+          </tr>
+          <tr>
+            <td>/v1/titles/slug/:slug/music</td>
+            <td>back-in-action-2025</td>
+            <td>Lookup by URL-safe slug</td>
+          </tr>
+          <tr>
+            <td>/v1/titles</td>
+            <td>?q=apex&amp;year=2026&amp;limit=10</td>
+            <td>List / search catalogued titles</td>
+          </tr>
+        </table>
+
+        <div class="code-label">Query params</div>
+        <table class="param-table">
+          <tr><th>Param</th><th>Type</th><th>Description</th></tr>
+          <tr><td>force</td><td>bool · optional</td><td>Re-fetch from Spotify even if cached (e.g. ?force=true)</td></tr>
+          <tr><td>type</td><td>string · optional</td><td>movie or tv — hints TMDB lookup for /tmdb/ route</td></tr>
+        </table>
+
+        <div class="code-label">Example response</div>
+        <div class="code-block">{
+  "provider": "CNF1G",
+  "creator": "shreyash",
+  "success": true,
+  "title": {
+    "id": "2",
+    "name": "Back in Action",
+    "year": 2025,
+    "type": "movie",
+    "imdb_id": "tt21192188",
+    "tmdb_id": "993710",
+    "slug": "back-in-action-2025"
+  },
+  "music": [
+    {
+      "id": "st-2",
+      "platform": "spotify",
+      "type": "playlist",
+      "playlist_id": "4ELkRqKThShCLqkkQ1xRY0",
+      "url": "https://open.spotify.com/playlist/4ELkRqKThShCLqkkQ1xRY0",
+      "source": "community",
+      "verified": true,
+      "confidence": 0.8,
+      "match_type": "exact"
+    }
+  ]
+}<button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+
+        <div class="code-label">Response fields — music[]</div>
+        <table class="param-table">
+          <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+          <tr>
+            <td>confidence</td>
+            <td>float 0.0–1.0</td>
+            <td>1.0 official+verified · 0.8 community+verified · 0.6 official+unverified · 0.4 community+unverified</td>
+          </tr>
+          <tr>
+            <td>match_type</td>
+            <td>&quot;exact&quot; | &quot;agnostic&quot;</td>
+            <td><b>exact</b> = resolved via IMDb/TMDB ID (most reliable) · <b>agnostic</b> = resolved via title+year text match only</td>
+          </tr>
+          <tr>
+            <td>verified</td>
+            <td>boolean</td>
+            <td>true = manually confirmed or from official Spotify source</td>
+          </tr>
+          <tr>
+            <td>source</td>
+            <td>&quot;official&quot; | &quot;community&quot;</td>
+            <td>official = from Spotify/label · community = curated by a third party</td>
+          </tr>
+        </table>
+
+        <div class="code-label">Rate-limit response headers (all /v1/* routes)</div>
+        <table class="param-table">
+          <tr><th>Header</th><th>Description</th></tr>
+          <tr><td>X-RateLimit-Limit</td><td>Max requests per minute for your IP</td></tr>
+          <tr><td>X-RateLimit-Remaining</td><td>Requests remaining in current window</td></tr>
+          <tr><td>X-RateLimit-Reset</td><td>Unix timestamp when the window resets</td></tr>
+          <tr><td>Retry-After</td><td>Seconds to wait — only present on 429 responses</td></tr>
+        </table>
+
+        <div class="code-label">curl examples</div>
+        <div class="code-block">GET /v1/titles/imdb/tt13070038/music<button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <div class="code-block">GET /v1/titles/tmdb/993710/music<button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <div class="code-block">GET /v1/titles/slug/back-in-action-2025/music<button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <div class="code-block">GET /v1/titles?q=apex&amp;year=2026&amp;limit=10<button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
       </div>
     </div>
 

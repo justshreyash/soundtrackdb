@@ -2,16 +2,24 @@ const express = require('express');
 const router = express.Router();
 const { respond, respondError } = require('../response');
 const {
+  validateImdbId,
+  validateTmdbId,
+  validateSlug,
+  validateInternalId,
+} = require('../middleware/validate-params');
+const {
   getTitleById,
   getTitleByImdb,
   getTitleByTmdb,
-  getTitleBySlug,
+  getTitleByAlias,
   getAllTitles,
+  resolveOrCreateTitle,
   insertOrUpdateTitle,
   insertSoundtrack,
   getSoundtracksForTitle,
   overrideSoundtrackForTitle,
   removeSoundtracksByTitleId,
+  reportSoundtrack,
 } = require('../services/soundtrack-db');
 const {
   extractPlaylistId,
@@ -48,6 +56,8 @@ function formatMusic(soundtracks) {
     url: s.spotify_url || (s.type === 'album' ? `https://open.spotify.com/album/${s.spotify_playlist_id}` : `https://open.spotify.com/playlist/${s.spotify_playlist_id}`),
     source: s.source || 'official',
     verified: s.verified !== undefined ? Boolean(s.verified) : true,
+    confidence: s.confidence !== undefined ? Number(s.confidence) : 1.0,
+    match_type: s.match_type || 'exact',
   }));
 }
 
@@ -74,6 +84,7 @@ router.get('/resolve', async (req, res) => {
       return respondError(res, 404, `Could not resolve title for: ${targetTitle || slug}`);
     }
 
+    res.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
     return respond(res, 200, {
       title: formatTitle(result.title),
       music: formatMusic(result.soundtracks || []),
@@ -84,7 +95,7 @@ router.get('/resolve', async (req, res) => {
 });
 
 // 1. Resolve by IMDb: GET /v1/titles/imdb/:imdb_id/music
-router.get('/imdb/:imdb_id/music', async (req, res) => {
+router.get('/imdb/:imdb_id/music', validateImdbId, async (req, res) => {
   const { imdb_id } = req.params;
   const force = req.query.force === 'true';
   try {
@@ -92,6 +103,7 @@ router.get('/imdb/:imdb_id/music', async (req, res) => {
     if (!result || !result.title) {
       return respondError(res, 404, `Title not found for IMDb ID: ${imdb_id}`);
     }
+    res.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
     return respond(res, 200, {
       title: formatTitle(result.title),
       music: formatMusic(result.soundtracks || []),
@@ -102,7 +114,7 @@ router.get('/imdb/:imdb_id/music', async (req, res) => {
 });
 
 // 2. Resolve by TMDB: GET /v1/titles/tmdb/:tmdb_id/music
-router.get('/tmdb/:tmdb_id/music', async (req, res) => {
+router.get('/tmdb/:tmdb_id/music', validateTmdbId, async (req, res) => {
   const { tmdb_id } = req.params;
   const { type } = req.query;
   const force = req.query.force === 'true';
@@ -111,6 +123,7 @@ router.get('/tmdb/:tmdb_id/music', async (req, res) => {
     if (!result || !result.title) {
       return respondError(res, 404, `Title not found for TMDB ID: ${tmdb_id}`);
     }
+    res.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
     return respond(res, 200, {
       title: formatTitle(result.title),
       music: formatMusic(result.soundtracks || []),
@@ -121,7 +134,7 @@ router.get('/tmdb/:tmdb_id/music', async (req, res) => {
 });
 
 // 3. Resolve by Slug: GET /v1/titles/slug/:slug/music
-router.get('/slug/:slug/music', async (req, res) => {
+router.get('/slug/:slug/music', validateSlug, async (req, res) => {
   const { slug } = req.params;
   const { title, year, type } = req.query;
   const force = req.query.force === 'true';
@@ -130,6 +143,7 @@ router.get('/slug/:slug/music', async (req, res) => {
     if (!result || !result.title) {
       return respondError(res, 404, `Title not found for slug: ${slug}`);
     }
+    res.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
     return respond(res, 200, {
       title: formatTitle(result.title),
       music: formatMusic(result.soundtracks || []),
@@ -140,7 +154,7 @@ router.get('/slug/:slug/music', async (req, res) => {
 });
 
 // 4. Resolve by Internal ID: GET /v1/titles/:id/music
-router.get('/:id/music', async (req, res) => {
+router.get('/:id/music', validateInternalId, async (req, res) => {
   const { id } = req.params;
   const force = req.query.force === 'true';
   try {
@@ -148,6 +162,7 @@ router.get('/:id/music', async (req, res) => {
     if (!result || !result.title) {
       return respondError(res, 404, `Title not found for ID: ${id}`);
     }
+    res.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
     return respond(res, 200, {
       title: formatTitle(result.title),
       music: formatMusic(result.soundtracks || []),
@@ -191,7 +206,7 @@ router.get('/', async (req, res) => {
 });
 
 // 6. Manual Override / Update Soundtrack for a Title: PUT /v1/titles/:id/music
-router.put('/:id/music', async (req, res) => {
+router.put('/:id/music', validateInternalId, async (req, res) => {
   const { id } = req.params;
   const title = (await getTitleById(id)) || (await getTitleByTmdb(id)) || (await getTitleByImdb(id));
   if (!title) {
@@ -222,7 +237,7 @@ router.put('/:id/music', async (req, res) => {
 });
 
 // 7. Delete / Unlink Soundtrack: DELETE /v1/titles/:id/music/:soundtrack_id?
-router.delete('/:id/music/:soundtrack_id?', async (req, res) => {
+router.delete('/:id/music/:soundtrack_id?', validateInternalId, async (req, res) => {
   const { id, soundtrack_id } = req.params;
   const title = (await getTitleById(id)) || (await getTitleByTmdb(id)) || (await getTitleByImdb(id));
   if (!title) {
@@ -318,4 +333,34 @@ router.post('/ingest', async (req, res) => {
   }
 });
 
+// 10. Report Soundtrack Mapping: POST /v1/titles/:id/music/:soundtrack_id/report
+
+router.post('/:id/music/:soundtrack_id/report', validateInternalId, async (req, res) => {
+  const { id, soundtrack_id } = req.params;
+  try {
+    const title = await getTitleById(id);
+    if (!title) {
+      return respondError(res, 404, `Title not found for ID: ${id}`);
+    }
+
+    const result = await reportSoundtrack(soundtrack_id);
+    if (!result || result.title_id !== String(id)) {
+      return respondError(res, 404, `Soundtrack "${soundtrack_id}" not found for Title ID: ${id}`);
+    }
+
+    return respond(res, 200, {
+      message: result.deactivated
+        ? 'Soundtrack reported and automatically deactivated due to multiple community flags.'
+        : 'Soundtrack reported successfully. Thank you for helping keep metadata accurate.',
+      soundtrack_id: result.id,
+      title_id: result.title_id,
+      report_count: result.report_count,
+      is_active: result.is_active,
+    });
+  } catch (err) {
+    return respondError(res, 500, `Failed to report soundtrack: ${err.message}`);
+  }
+});
+
 module.exports = router;
+

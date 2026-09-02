@@ -13,8 +13,6 @@ const FILES = [
   "src/token-manager.js",
   "src/github.js",
   "src/response.js",
-  "src/crypto.js",
-  "src/rate-limit-state.js",
   "src/spotify-graphql.js",
   "src/routes/search.js",
   "src/routes/track.js",
@@ -22,6 +20,7 @@ const FILES = [
   "src/routes/playlist.js",
   "src/routes/artist.js",
 ];
+
 
 async function getSha(fp) {
   try {

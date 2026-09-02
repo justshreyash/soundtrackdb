@@ -101,26 +101,40 @@ curl "http://localhost:3000/v1/titles/tmdb/993710/music"
   "creator": "shreyash",
   "success": true,
   "title": {
-    "id": "1",
-    "name": "The Electric State",
+    "id": "2",
+    "name": "Back in Action",
     "year": 2025,
     "type": "movie",
-    "imdb_id": "tt13070038",
-    "tmdb_id": "766507",
-    "slug": "the-electric-state-2025"
+    "imdb_id": "tt21192188",
+    "tmdb_id": "993710",
+    "slug": "back-in-action-2025"
   },
   "music": [
     {
+      "id": "st-2",
       "platform": "spotify",
       "type": "playlist",
-      "playlist_id": "6QlxaUG3pKLPJPzoWEhZuG",
-      "url": "https://open.spotify.com/playlist/6QlxaUG3pKLPJPzoWEhZuG",
-      "source": "official",
-      "verified": true
+      "playlist_id": "4ELkRqKThShCLqkkQ1xRY0",
+      "url": "https://open.spotify.com/playlist/4ELkRqKThShCLqkkQ1xRY0",
+      "source": "community",
+      "verified": true,
+      "confidence": 0.8,
+      "match_type": "exact"
     }
   ]
 }
 ```
+
+### Response fields — `music[]`
+
+| Field | Type | Description |
+|---|---|---|
+| `confidence` | float 0.0–1.0 | **1.0** official+verified · **0.8** community+verified · **0.6** official+unverified · **0.4** community+unverified |
+| `match_type` | `"exact"` \| `"agnostic"` | **exact** = resolved via IMDb/TMDB ID · **agnostic** = resolved via title+year text match only (lower confidence) |
+| `verified` | boolean | `true` = manually confirmed or official Spotify source |
+| `source` | `"official"` \| `"community"` | `official` = from Spotify/label · `community` = curated by third party |
+
+> **Tip:** filter on `confidence >= 0.8` and `match_type == "exact"` for the highest-quality results.
 
 If a title exists but has no soundtrack playlists linked:
 
@@ -296,8 +310,15 @@ Create a `.env` file (see `.env.example`):
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `PORT` | `3007` | Port to listen on |
+| `PORT` | `3000` | Port to listen on |
+| `NODE_ENV` | `development` | Set to `production` on host — controls error detail in logs |
 | `REFRESH_INTERVAL_MINUTES` | `30` | Token auto-refresh interval |
+| `TURSO_DATABASE_URL` | *(local SQLite)* | Turso cloud DB URL — leave blank to use local `data/soundtracks.db` |
+| `TURSO_AUTH_TOKEN` | - | Turso auth token |
+| `TMDB_API_KEY` | - | Optional — TMDB API key for higher rate limits |
+| `RATE_LIMIT_ENABLED` | `false` | Set `true` in production to enforce IP rate limits |
+| `RATE_LIMIT_REQUESTS_PER_MIN` | `60` | Max requests per IP per 60s window |
+| `CRON_SECRET` | - | Bearer secret to protect `GET /api/cron-health-check` |
 | `GITHUB_TOKEN` | - | Optional: persist token across restarts |
 | `GITHUB_REPO` | - | Optional: repo for token storage (e.g. `user/repo`) |
 
@@ -324,7 +345,9 @@ pm2 startup
 ## Project Structure
 
 ```
-sportify-api/
+sptfy-api/
+├── api/
+│   └── cron-health-check.js  - Vercel Cron function (weekly playlist health check)
 ├── src/
 │   ├── index.js              - Express server entry point and route registration
 │   ├── token-manager.js      - Token cache, TOTP auth and refresh scheduler
@@ -334,25 +357,34 @@ sportify-api/
 │   ├── github.js             - GitHub token persistence (optional)
 │   ├── response.js           - Standardised response helpers
 │   ├── crypto.js             - Crypto utilities
-│   └── routes/
-│       ├── track.js          - GET /api/track/:id
-│       ├── album.js          - GET /api/album/:id
-│       ├── artist.js         - GET /api/artist/:id and /top-tracks
-│       ├── playlist.js       - GET /api/playlist/:id
-│       └── search.js         - GET /api/search
+│   ├── middleware/
+│   │   ├── rate-limit.js     - Sliding-window IP rate limiter
+│   │   └── validate-params.js - Route param validators (IMDb/TMDB/slug/ID)
+│   ├── routes/
+│   │   ├── track.js          - GET /api/track/:id
+│   │   ├── album.js          - GET /api/album/:id
+│   │   ├── artist.js         - GET /api/artist/:id and /top-tracks
+│   │   ├── playlist.js       - GET /api/playlist/:id
+│   │   ├── search.js         - GET /api/search
+│   │   └── v1-titles.js      - All /v1/titles/* soundtrack routes
+│   └── services/
+│       ├── soundtrack-db.js      - Turso DB layer (resolveOrCreateTitle, alias, confidence)
+│       ├── soundtrack-resolver.js - Auto-ingest pipeline (TMDB → Spotify)
+│       ├── soundtrack-finder.js  - Spotify playlist search + scoring
+│       ├── soundtrack-validator.js - Playlist ID extraction and validation
+│       └── tmdb.js               - TMDB metadata fetching
+├── scripts/
+│   ├── rebuild-schema.js     - DROP + CREATE all tables (run before reseed)
+│   ├── migrate-to-turso.js   - Reseed from data/titles.json + soundtracks.json
+│   ├── checkSoundtrackHealth.js - Manual playlist health check (--dry-run supported)
+│   ├── ingest-by-tmdb.js     - Ingest single title by TMDB ID
+│   └── refresh.js            - Manual token refresh
 ├── public/
 │   ├── index.html            - Interactive API documentation page
-│   ├── terms.html            - Terms & Conditions
-│   ├── disclaimer.html       - Disclaimer
-│   ├── favicon.svg           - Site favicon
-│   └── og.png                - Social media preview image
-├── scripts/
-│   ├── refresh.js            - Manual token refresh
-│   └── raw-push.js           - GitHub file push utility
+│   ├── favicon.svg
+│   └── og.png
+├── vercel.json               - Vercel Cron schedule config
 ├── .env.example
-├── CONTRIBUTING.md
-├── DISCLAIMER.md
-├── LICENSE
 ├── SECURITY.md
 └── README.md
 ```

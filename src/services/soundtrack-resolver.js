@@ -2,9 +2,9 @@ const {
   getTitleById,
   getTitleByImdb,
   getTitleByTmdb,
-  getTitleBySlug,
+  getTitleByAlias,
   getSoundtracksForTitle,
-  insertOrUpdateTitle,
+  resolveOrCreateTitle,
   insertSoundtrack,
   removeSoundtracksByTitleId,
 } = require('./soundtrack-db');
@@ -38,6 +38,7 @@ function parseSlug(slug) {
 
 /**
  * Resolve title & soundtrack by TMDB ID with optional force refresh.
+ * match_type = 'exact' (resolved via tmdb_id).
  */
 async function resolveByTmdb(tmdbId, mediaType, force = false) {
   if (!tmdbId) return null;
@@ -57,14 +58,14 @@ async function resolveByTmdb(tmdbId, mediaType, force = false) {
   if (!title) {
     const meta = await fetchTmdbMetadata(cleanTmdb, mediaType);
     if (meta && meta.title) {
-      const saved = await insertOrUpdateTitle(meta);
+      const saved = await resolveOrCreateTitle(meta);
       title = saved.title;
     }
   }
 
   if (!title) return null;
 
-  // Search Spotify if forced or no soundtrack exists
+  // Search Spotify if forced or no active soundtrack exists
   if (force || soundtracks.length === 0) {
     const found = await findSoundtrackPlaylist(title.title, title.year);
     if (found) {
@@ -78,6 +79,7 @@ async function resolveByTmdb(tmdbId, mediaType, force = false) {
         type: found.type || 'playlist',
         source: found.source || 'official',
         verified: found.verified,
+        match_type: 'exact',
       });
       soundtracks = [savedSt.soundtrack];
     }
@@ -88,6 +90,7 @@ async function resolveByTmdb(tmdbId, mediaType, force = false) {
 
 /**
  * Resolve title & soundtrack by IMDb ID with optional force refresh.
+ * match_type = 'exact' (resolved via imdb_id).
  */
 async function resolveByImdb(imdbId, force = false) {
   if (!imdbId) return null;
@@ -103,7 +106,7 @@ async function resolveByImdb(imdbId, force = false) {
   if (!title) {
     const meta = await fetchImdbMetadata(cleanImdb);
     if (meta && meta.title) {
-      const saved = await insertOrUpdateTitle(meta);
+      const saved = await resolveOrCreateTitle(meta);
       title = saved.title;
     }
   }
@@ -123,6 +126,7 @@ async function resolveByImdb(imdbId, force = false) {
         type: found.type || 'playlist',
         source: found.source || 'official',
         verified: found.verified,
+        match_type: 'exact',
       });
       soundtracks = [savedSt.soundtrack];
     }
@@ -135,6 +139,9 @@ async function resolveByImdb(imdbId, force = false) {
  * Universal auto-ingest resolver by Title or Slug.
  * Resolves against Turso DB -> TMDB search -> Spotify direct fallback.
  * Guarantees persistence in Turso DB for all successfully resolved titles.
+ *
+ * Slug lookups go through title_aliases (getTitleByAlias), not titles.slug directly.
+ * match_type is 'agnostic' for slug/title-only resolutions with no external ID.
  */
 async function resolveByTitleOrSlug({ slug, title: rawTitle, year: rawYear, type: rawType, force = false } = {}) {
   const parsed = slug ? parseSlug(slug) : { searchTitle: '', searchYear: null };
@@ -145,15 +152,15 @@ async function resolveByTitleOrSlug({ slug, title: rawTitle, year: rawYear, type
 
   if (!searchTitle && !targetSlug) return null;
 
-  // 1. Check Turso DB by slug
-  let title = targetSlug ? await getTitleBySlug(targetSlug) : null;
+  // 1. Check Turso DB via title_aliases (not titles.slug directly)
+  let title = targetSlug ? await getTitleByAlias(targetSlug) : null;
   let soundtracks = title ? await getSoundtracksForTitle(title.id) : [];
 
   if (!force && title && soundtracks.length > 0) {
     return { title, soundtracks };
   }
 
-  // 2. If title exists in DB but has no soundtracks (or forced)
+  // 2. Title exists in DB but has no active soundtracks (or forced)
   if (title && (force || soundtracks.length === 0)) {
     const found = await findSoundtrackPlaylist(title.title, title.year);
     if (found) {
@@ -167,6 +174,7 @@ async function resolveByTitleOrSlug({ slug, title: rawTitle, year: rawYear, type
         type: found.type || 'playlist',
         source: found.source || 'official',
         verified: found.verified,
+        match_type: 'agnostic', // slug-only path — no external ID
       });
       soundtracks = [savedSt.soundtrack];
     }
@@ -174,7 +182,7 @@ async function resolveByTitleOrSlug({ slug, title: rawTitle, year: rawYear, type
   }
 
   // 3. Not in Turso DB -> Auto-Ingest Pipeline
-  // 3a. Search TMDB
+  // 3a. Search TMDB (exact resolution path)
   const tmdbMatch = await searchTmdb(searchTitle, searchYear, searchType);
   if (tmdbMatch && tmdbMatch.tmdb_id) {
     const tmdbRes = await resolveByTmdb(tmdbMatch.tmdb_id, tmdbMatch.type || searchType, force);
@@ -183,12 +191,12 @@ async function resolveByTitleOrSlug({ slug, title: rawTitle, year: rawYear, type
     }
   }
 
-  // 3b. TMDB has no match -> Direct Spotify search fallback + Turso persistence
+  // 3b. TMDB has no match -> Direct Spotify search + Turso persistence (agnostic)
   const found = await findSoundtrackPlaylist(searchTitle, searchYear);
   const cleanYear = searchYear || new Date().getFullYear();
   const cleanSlug = targetSlug || generateSlug(searchTitle, cleanYear);
 
-  const savedTitle = await insertOrUpdateTitle({
+  const savedTitle = await resolveOrCreateTitle({
     title: searchTitle,
     year: cleanYear,
     type: searchType || 'movie',
@@ -208,6 +216,7 @@ async function resolveByTitleOrSlug({ slug, title: rawTitle, year: rawYear, type
       type: found.type || 'playlist',
       source: found.source || 'official',
       verified: found.verified,
+      match_type: 'agnostic', // no external ID confirmed
     });
     soundtracks = [savedSt.soundtrack];
   }
@@ -244,6 +253,7 @@ async function resolveById(id, force = false) {
         type: found.type || 'playlist',
         source: found.source || 'official',
         verified: found.verified,
+        match_type: 'exact',
       });
       soundtracks = [savedSt.soundtrack];
     }
