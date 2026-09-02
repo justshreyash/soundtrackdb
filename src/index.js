@@ -76,13 +76,6 @@ app.get('/api/token', async (req, res) => {
   }
 });
 
-// Routes
-app.use('/api/search', require('./routes/search'));
-app.use('/api/track', require('./routes/track'));
-app.use('/api/album', require('./routes/album'));
-app.use('/api/playlist', require('./routes/playlist'));
-app.use('/api/artist', require('./routes/artist'));
-
 // Movie Soundtrack API v1 Routes — rate-limit wired here (no-op in dev)
 app.use('/v1', rateLimit);
 app.use('/v1/titles', require('./routes/v1-titles'));
