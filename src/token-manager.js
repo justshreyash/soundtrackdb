@@ -92,12 +92,30 @@ async function getClientToken() {
   return cachedClientToken;
 }
 
+let schedulerTask = null;
+
 function startScheduler(intervalMinutes = 30) {
+  if (process.env.NODE_ENV === 'test') return null;
   const cron = require('node-cron');
   const expr = `*/${intervalMinutes} * * * *`;
-  cron.schedule(expr, refreshToken);
+  if (schedulerTask) schedulerTask.stop();
+  schedulerTask = cron.schedule(expr, refreshToken);
   refreshToken();
   fetchClientToken().then(t => { cachedClientToken = t; });
+  return schedulerTask;
 }
 
-module.exports = { getToken, getClientToken, refreshToken, startScheduler };
+function stopScheduler() {
+  if (schedulerTask) {
+    schedulerTask.stop();
+    schedulerTask = null;
+  }
+}
+
+module.exports = {
+  getToken,
+  getClientToken,
+  refreshToken,
+  startScheduler,
+  stopScheduler,
+};

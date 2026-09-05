@@ -5,20 +5,14 @@
  * When RATE_LIMIT_ENABLED=false (default/dev), this is a no-op.
  * When RATE_LIMIT_ENABLED=true, requests exceeding RATE_LIMIT_REQUESTS_PER_MIN
  * per IP per 60s are rejected with 429 + Retry-After.
- *
- * Tradeoffs:
- *  ✅ Zero new dependencies
- *  ✅ Works immediately on any Node host
- *  ⚠️  Not shared across multiple instances (fine for Vercel free-tier single-instance)
- *  TODO (scale): Replace Map with Upstash Redis (@upstash/ratelimit) when you need
- *  multi-instance distribution. No route-file changes required — just swap this file.
  */
 
 const { respondError } = require('../response');
+const { ErrorCodes } = require('../errors');
 
 // ── Config ────────────────────────────────────────────────────────────────────
 const WINDOW_MS = 60 * 1000; // 60-second window
-const getLimit = () => parseInt(process.env.RATE_LIMIT_REQUESTS_PER_MIN || '60', 10);
+const getLimit = () => parseInt(process.env.RATE_LIMIT_REQUESTS_PER_MIN || '100', 10);
 const isEnabled = () => process.env.RATE_LIMIT_ENABLED === 'true';
 
 // ── State: Map<ip, { count, windowStart }> ────────────────────────────────────
@@ -52,6 +46,9 @@ function rateLimit(req, res, next) {
   if (!state || now - state.windowStart > WINDOW_MS) {
     // New window — reset
     ipMap.set(ip, { count: 1, windowStart: now });
+    res.setHeader('X-RateLimit-Limit', String(limit));
+    res.setHeader('X-RateLimit-Remaining', String(limit - 1));
+    res.setHeader('X-RateLimit-Reset', String(Math.ceil((now + WINDOW_MS) / 1000)));
     return next();
   }
 
@@ -63,10 +60,18 @@ function rateLimit(req, res, next) {
     res.setHeader('X-RateLimit-Limit', String(limit));
     res.setHeader('X-RateLimit-Remaining', '0');
     res.setHeader('X-RateLimit-Reset', String(Math.ceil((state.windowStart + WINDOW_MS) / 1000)));
+    
+    if (req.telemetry) {
+      req.telemetry.rateLimited = true;
+      req.telemetry.errorCode = ErrorCodes.RATE_LIMITED;
+      req.telemetry.outcome = 'RATE_LIMITED';
+    }
+
     return respondError(
       res,
       429,
-      `Rate limit exceeded. Maximum ${limit} requests per minute. Retry after ${retryAfterSeconds}s.`
+      `Rate limit exceeded. Maximum ${limit} requests per minute. Retry after ${retryAfterSeconds}s.`,
+      ErrorCodes.RATE_LIMITED
     );
   }
 

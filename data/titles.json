@@ -321,7 +321,7 @@
     "type": "tv",
     "imdb_id": "",
     "tmdb_id": "",
-    "slug": "test-mdl-drama-1788332360331"
+    "slug": "test-mdl-drama-1788617367005"
   },
   {
     "id": "37",
@@ -358,5 +358,77 @@
     "imdb_id": "tt13433812",
     "tmdb_id": "117376",
     "slug": "vincenzo-2021"
+  },
+  {
+    "id": "43",
+    "title": "Blossom Through the Cloud",
+    "year": 2026,
+    "type": "tv",
+    "imdb_id": "tt36982718",
+    "tmdb_id": "286988",
+    "slug": "blossom-through-the-cloud-2026"
+  },
+  {
+    "id": "44",
+    "title": "Love Scenery",
+    "year": 2021,
+    "type": "tv",
+    "imdb_id": "tt12026524",
+    "tmdb_id": "100962",
+    "slug": "love-scenery-2021"
+  },
+  {
+    "id": "45",
+    "title": "Hidden Love",
+    "year": 2023,
+    "type": "tv",
+    "imdb_id": "tt28076458",
+    "tmdb_id": "210733",
+    "slug": "hidden-love-2023"
+  },
+  {
+    "id": "46",
+    "title": "Filing for Love",
+    "year": 2026,
+    "type": "tv",
+    "imdb_id": "tt39010903",
+    "tmdb_id": "297640",
+    "slug": "filing-for-love-2026"
+  },
+  {
+    "id": "47",
+    "title": "Squid Game Season 1",
+    "year": 2026,
+    "type": "tv",
+    "imdb_id": "",
+    "tmdb_id": "",
+    "slug": "squid-game-season-1-2026"
+  },
+  {
+    "id": "48",
+    "title": "Be My Player Two (Uncut Ver.)",
+    "year": 2026,
+    "type": "tv",
+    "imdb_id": "",
+    "tmdb_id": "",
+    "slug": "be-my-player-two-uncut-ver-2026"
+  },
+  {
+    "id": "49",
+    "title": "Knot",
+    "year": 2026,
+    "type": "tv",
+    "imdb_id": "tt38916337",
+    "tmdb_id": "303493",
+    "slug": "knot-2026"
+  },
+  {
+    "id": "50",
+    "title": "See You at Work Tomorrow!",
+    "year": 2026,
+    "type": "tv",
+    "imdb_id": "tt38960812",
+    "tmdb_id": "289763",
+    "slug": "see-you-at-work-tomorrow-2026"
   }
 ]

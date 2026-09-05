@@ -2,21 +2,62 @@ const path = require('path');
 const fs = require('fs');
 const { createClient } = require('@libsql/client');
 
-// Ensure data directory exists for local fallback
 const DATA_DIR = path.join(__dirname, '../../data');
 if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
-const dbUrl = process.env.TURSO_DATABASE_URL || `file:${path.join(DATA_DIR, 'soundtracks.db').replace(/\\/g, '/')}`;
+const localDbUrl = `file:${path.join(DATA_DIR, 'soundtracks.db').replace(/\\/g, '/')}`;
+const remoteDbUrl = process.env.TURSO_DATABASE_URL;
 const authToken = process.env.TURSO_AUTH_TOKEN;
 
-const db = createClient({
-  url: dbUrl,
-  authToken: dbUrl.startsWith('file:') ? undefined : authToken,
+let isLocalFallback = !remoteDbUrl;
+let activeClient = createClient({
+  url: remoteDbUrl || localDbUrl,
+  authToken: remoteDbUrl ? authToken : undefined,
 });
 
+let fallbackPromise = null;
+
+async function switchToLocalFallback(reason) {
+  if (fallbackPromise) return fallbackPromise;
+  fallbackPromise = (async () => {
+    console.warn(`[Database Fallback] Turso unreachable (${reason}). Falling back to local embedded SQLite: ${localDbUrl}`);
+    activeClient = createClient({ url: localDbUrl });
+    isLocalFallback = true;
+    isInitialized = false;
+    await doInitDb();
+  })();
+  return fallbackPromise;
+}
+
+const db = {
+  async execute(...args) {
+    try {
+      return await activeClient.execute(...args);
+    } catch (err) {
+      if (err.code === 'ENOTFOUND' || err.message?.includes('fetch failed')) {
+        await switchToLocalFallback(err.message);
+        return await activeClient.execute(...args);
+      }
+      throw err;
+    }
+  },
+  async batch(...args) {
+    try {
+      return await activeClient.batch(...args);
+    } catch (err) {
+      if (err.code === 'ENOTFOUND' || err.message?.includes('fetch failed')) {
+        await switchToLocalFallback(err.message);
+        return await activeClient.batch(...args);
+      }
+      throw err;
+    }
+  }
+};
+
 let isInitialized = false;
+let initPromise = null;
 
 // ─── Normalization helpers ────────────────────────────────────────────────────
 
@@ -58,6 +99,19 @@ function computeConfidence(source, verified) {
 // ─── DB initialization (idempotent — safe to call on every startup) ───────────
 
 async function initDb() {
+  if (isInitialized) return;
+  if (initPromise) return initPromise;
+  initPromise = (async () => {
+    try {
+      await doInitDb();
+    } finally {
+      initPromise = null;
+    }
+  })();
+  return initPromise;
+}
+
+async function doInitDb() {
   if (isInitialized) return;
 
   await db.execute('PRAGMA foreign_keys = ON;');

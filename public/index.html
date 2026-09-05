@@ -1,1290 +1,1315 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark scroll-smooth">
 
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SoundTrackDB — Free Spotify Search & Movie Soundtrack API by CNF1G</title>
+  <title>SoundTrackDB — Free Spotify Search & Movie Soundtrack API Engine</title>
   <meta name="description"
-    content="Free, unlimited Spotify music data & Movie Soundtrack API. No API keys, no sign-ups, no rate limits. Built by cnf1g & shreyash · CNF1G." />
+    content="Free, unlimited Spotify music data & Movie Soundtrack API by CNF1G. No API keys, no sign-ups, no rate limits. Built by cnf1g & shreyash · CNF1G." />
   <meta name="author" content="cnf1g & shreyash · CNF1G" />
-  <meta name="keywords" content="SoundTrackDB, Spotify API, free Spotify API, movie soundtrack API, music API, Spotify search, CNF1G" />
+  <meta name="keywords"
+    content="SoundTrackDB, Spotify API, free Spotify API, movie soundtrack API, music API, Spotify search, CNF1G" />
   <meta name="robots" content="index, follow" />
 
-  <!-- Open Graph / Facebook / WhatsApp -->
+  <!-- Open Graph -->
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="" />
   <meta property="og:title" content="SoundTrackDB — Free Spotify Search & Movie Soundtrack API" />
   <meta property="og:description"
     content="Free, unlimited Spotify search & Movie Soundtrack API by CNF1G. No API keys, no sign-ups, no rate limits. Search tracks, albums, artists, playlists, and movie soundtracks." />
-  <meta property="og:image" content="" />
-  <meta property="og:image:width" content="1200" />
-  <meta property="og:image:height" content="630" />
-  <meta property="og:image:alt" content="SoundTrackDB by CNF1G" />
   <meta property="og:site_name" content="CNF1G" />
-
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:url" content="" />
-  <meta name="twitter:title" content="SoundTrackDB — Free Spotify Search & Movie Soundtrack API" />
-  <meta name="twitter:description"
-    content="Free, unlimited Spotify search & Movie Soundtrack API by CNF1G. No API keys, no sign-ups, no rate limits." />
-  <meta name="twitter:image" content="" />
-  <meta name="twitter:creator" content="" />
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="shortcut icon" href="/favicon.svg" />
-  <link rel="apple-touch-icon" href="/og.png" />
+
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            border: 'hsl(var(--border))',
+            input: 'hsl(var(--input))',
+            ring: 'hsl(var(--ring))',
+            background: 'hsl(var(--background))',
+            foreground: 'hsl(var(--foreground))',
+            card: {
+              DEFAULT: 'hsl(var(--card))',
+              foreground: 'hsl(var(--card-foreground))',
+            },
+            muted: {
+              DEFAULT: 'hsl(var(--muted))',
+              foreground: 'hsl(var(--muted-foreground))',
+            },
+            accent: {
+              DEFAULT: 'hsl(var(--accent))',
+              foreground: 'hsl(var(--accent-foreground))',
+            },
+          },
+          animation: {
+            'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+          }
+        },
+      },
+    };
+  </script>
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
-    *,
-    *::before,
-    *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
     :root {
-      --purple: #7c3aed;
-      --purple-light: #a855f7;
-      --purple-dark: #5b21b6;
-      --purple-glow: #7c3aed22;
-      --bg: #0a0a0a;
-      --surface: #111;
-      --surface2: #181818;
-      --border: #1f1f1f;
-      --text: #e8e8e8;
-      --muted: #5a5a5a;
-      --radius: 12px;
+      --background: 240 10% 3.9%;
+      --foreground: 0 0% 98%;
+      --card: 240 10% 4.9%;
+      --card-foreground: 0 0% 98%;
+      --muted: 240 3.7% 15.9%;
+      --muted-foreground: 240 5% 64.9%;
+      --accent: 240 3.7% 15.9%;
+      --accent-foreground: 0 0% 98%;
+      --border: 240 3.7% 15.9%;
+      --input: 240 3.7% 15.9%;
+      --ring: 240 4.9% 83.9%;
     }
 
-    html {
-      scroll-behavior: smooth;
+    /* Custom scrollbars for clean code display */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
     }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      min-height: 100vh;
-      line-height: 1.6;
-    }
-
-    /* Header */
-    header {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 16px 36px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 12px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      backdrop-filter: blur(10px);
-    }
-
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      text-decoration: none;
-    }
-
-    .logo-icon {
-      width: 38px;
-      height: 38px;
-      border-radius: 10px;
-      background: linear-gradient(135deg, var(--purple), var(--purple-light));
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      font-weight: 900;
-      color: white;
-      font-family: Arial, sans-serif;
-    }
-
-    .logo-text h1 {
-      font-size: 1.15rem;
-      font-weight: 700;
-      color: #fff;
-    }
-
-    .logo-text p {
-      font-size: 0.72rem;
-      color: var(--muted);
-    }
-
-    nav {
-      display: flex;
-      gap: 4px;
-      flex-wrap: wrap;
-    }
-
-    nav a {
-      color: var(--muted);
-      font-size: 0.8rem;
-      text-decoration: none;
-      padding: 5px 11px;
-      border-radius: 6px;
-      transition: color 0.2s, background 0.2s;
-    }
-
-    nav a:hover {
-      color: #fff;
-      background: var(--surface2);
-    }
-
-    .badge {
-      background: linear-gradient(135deg, var(--purple), var(--purple-light));
-      color: #fff;
-      font-size: 0.68rem;
-      font-weight: 700;
-      padding: 4px 12px;
-      border-radius: 20px;
-      letter-spacing: 0.5px;
-    }
-
-    /* Hero */
-    .hero {
-      text-align: center;
-      padding: 72px 20px 52px;
-      background: radial-gradient(ellipse at 50% 0%, var(--purple-glow) 0%, transparent 65%);
-    }
-
-    .hero-tag {
-      display: inline-block;
-      background: var(--purple-glow);
-      border: 1px solid var(--purple);
-      border-radius: 20px;
-      padding: 4px 14px;
-      font-size: 0.75rem;
-      color: var(--purple-light);
-      font-weight: 600;
-      margin-bottom: 20px;
-      letter-spacing: 0.5px;
-    }
-
-    .hero h2 {
-      font-size: 2.6rem;
-      font-weight: 900;
-      color: #fff;
-      margin-bottom: 14px;
-      line-height: 1.15;
-    }
-
-    .hero h2 span {
-      background: linear-gradient(135deg, var(--purple), var(--purple-light));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .hero p {
-      font-size: 1rem;
-      color: var(--muted);
-      max-width: 500px;
-      margin: 0 auto 30px;
-    }
-
-    .pills {
-      display: flex;
-      gap: 8px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-
-    .pill {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 5px 14px;
-      font-size: 0.78rem;
-      color: var(--muted);
-    }
-
-    .pill b {
-      color: var(--purple-light);
-    }
-
-    main {
-      max-width: 980px;
-      margin: 0 auto;
-      padding: 10px 20px 80px;
-    }
-
-    .section-title {
-      font-size: 0.68rem;
-      font-weight: 700;
-      letter-spacing: 2.5px;
-      text-transform: uppercase;
-      color: var(--purple-light);
-      margin-bottom: 14px;
-      margin-top: 52px;
-    }
-
-    /* Token Banner */
-    .token-banner {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 22px 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .token-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .token-label {
-      font-size: 0.8rem;
-      color: var(--muted);
-    }
-
-    .token-meta {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .token-status {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      font-size: 0.78rem;
-      color: var(--text);
-    }
-
-    .dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--purple-light);
-      animation: pulse 2s ease-in-out infinite;
-    }
-
-    .dot.loading {
-      background: #444;
-      animation: none;
-    }
-
-    .dot.error {
-      background: #f87171;
-      animation: none;
-    }
-
-    @keyframes pulse {
-
-      0%,
-      100% {
-        opacity: 1;
-        transform: scale(1)
-      }
-
-      50% {
-        opacity: 0.5;
-        transform: scale(0.85)
-      }
-    }
-
-    .token-expiry {
-      font-size: 0.74rem;
-      color: var(--muted);
-    }
-
-    .token-value-row {
-      display: flex;
-      gap: 8px;
-      align-items: stretch;
-    }
-
-    .token-value {
-      flex: 1;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 10px 14px;
-      font-family: 'Courier New', monospace;
-      font-size: 0.77rem;
-      color: #c4b5fd;
-      word-break: break-all;
-      min-height: 42px;
-    }
-
-    .token-value.loading-text {
-      color: var(--muted);
-      font-style: italic;
-    }
-
-    .token-usage-hint {
-      font-size: 0.76rem;
-      color: var(--muted);
-    }
-
-    .token-usage-hint code {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 2px 6px;
-      font-family: monospace;
-      color: #a78bfa;
-      font-size: 0.74rem;
-    }
-
-    /* Buttons */
-    .btn {
-      background: linear-gradient(135deg, var(--purple), var(--purple-light));
-      color: #fff;
-      font-weight: 700;
-      border: none;
-      border-radius: 8px;
-      padding: 9px 18px;
-      cursor: pointer;
-      font-size: 0.84rem;
-      transition: opacity 0.2s;
-      white-space: nowrap;
-    }
-
-    .btn:hover {
-      opacity: 0.88;
-    }
-
-    .btn:disabled {
-      opacity: 0.35;
-      cursor: not-allowed;
-    }
-
-    .btn-outline {
+    ::-webkit-scrollbar-track {
       background: transparent;
-      color: var(--text);
-      border: 1px solid var(--border);
     }
-
-    .btn-outline:hover {
-      background: var(--surface2);
-      border-color: #333;
-      opacity: 1;
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 9999px;
     }
-
-    /* Try box */
-    .try-box {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 22px;
-      margin-bottom: 20px;
-    }
-
-    .input-row {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .input-row input,
-    .input-row select {
-      flex: 1;
-      min-width: 130px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 9px 13px;
-      color: var(--text);
-      font-size: 0.87rem;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-
-    .input-row input:focus,
-    .input-row select:focus {
-      border-color: var(--purple);
-    }
-
-    .input-row select option {
-      background: #111;
-    }
-
-    .result-box {
-      margin-top: 14px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 14px;
-      font-family: 'Courier New', monospace;
-      font-size: 0.78rem;
-      color: #c4b5fd;
-      white-space: pre-wrap;
-      word-break: break-all;
-      max-height: 380px;
-      overflow-y: auto;
-      display: none;
-    }
-
-    .result-box.visible {
-      display: block;
-    }
-
-    .result-box.error {
-      color: #f87171;
-    }
-
-    /* Endpoint grid */
-    .endpoint-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(265px, 1fr));
-      gap: 12px;
-    }
-
-    .endpoint-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 16px 18px;
-      cursor: pointer;
-      transition: border-color 0.2s, transform 0.15s;
-    }
-
-    .endpoint-card:hover {
-      border-color: var(--purple);
-      transform: translateY(-2px);
-    }
-
-    .ep-method {
-      font-size: 0.67rem;
-      font-weight: 700;
-      background: var(--purple-glow);
-      color: var(--purple-light);
-      border-radius: 4px;
-      padding: 2px 8px;
-      display: inline-block;
-      margin-bottom: 8px;
-      border: 1px solid var(--purple)33;
-    }
-
-    .ep-path {
-      font-family: monospace;
-      font-size: 0.83rem;
-      color: #fff;
-      margin-bottom: 3px;
-    }
-
-    .ep-params {
-      font-size: 0.71rem;
-      color: #3a3a3a;
-      margin-bottom: 4px;
-      font-family: monospace;
-    }
-
-    .ep-desc {
-      font-size: 0.75rem;
-      color: var(--muted);
-    }
-
-    /* Usage docs */
-    .usage-block {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      margin-bottom: 10px;
-      overflow: hidden;
-    }
-
-    .usage-head {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 14px 18px;
-      cursor: pointer;
-      user-select: none;
-      transition: background 0.15s;
-    }
-
-    .usage-head:hover {
-      background: var(--surface2);
-    }
-
-    .usage-path {
-      font-family: monospace;
-      font-size: 0.87rem;
-      color: #fff;
-      flex: 1;
-    }
-
-    .usage-desc-short {
-      font-size: 0.75rem;
-      color: var(--muted);
-    }
-
-    .chevron {
-      color: var(--muted);
-      font-size: 0.75rem;
-      transition: transform 0.2s;
-    }
-
-    .usage-block.open .chevron {
-      transform: rotate(90deg);
-    }
-
-    .usage-body {
-      display: none;
-      padding: 0 18px 18px;
-      border-top: 1px solid var(--border);
-    }
-
-    .usage-block.open .usage-body {
-      display: block;
-    }
-
-    .param-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 14px 0;
-      font-size: 0.79rem;
-    }
-
-    .param-table th {
-      text-align: left;
-      padding: 6px 10px;
-      color: var(--muted);
-      font-weight: 600;
-      border-bottom: 1px solid var(--border);
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .param-table td {
-      padding: 7px 10px;
-      border-bottom: 1px solid #161616;
-      vertical-align: top;
-    }
-
-    .param-table td:first-child {
-      font-family: monospace;
-      color: #a78bfa;
-    }
-
-    .param-table td:nth-child(2) {
-      color: #fbbf24;
-    }
-
-    .param-table td:nth-child(3) {
-      color: var(--muted);
-    }
-
-    .code-block {
-      position: relative;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 13px 16px;
-      margin: 10px 0;
-      font-family: 'Courier New', monospace;
-      font-size: 0.77rem;
-      color: #ccc;
-      white-space: pre-wrap;
-      word-break: break-all;
-    }
-
-    .code-label {
-      font-size: 0.67rem;
-      color: var(--muted);
-      margin: 14px 0 6px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .copy-btn {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      color: var(--muted);
-      border-radius: 6px;
-      padding: 3px 10px;
-      font-size: 0.7rem;
-      cursor: pointer;
-      transition: color 0.2s, border-color 0.2s;
-    }
-
-    .copy-btn:hover {
-      color: #fff;
-      border-color: #333;
-    }
-
-    .copy-btn.copied {
-      color: var(--purple-light);
-      border-color: var(--purple);
-    }
-
-    /* Loader */
-    .loader {
-      display: inline-block;
-      width: 12px;
-      height: 12px;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-top-color: #fff;
-      border-radius: 50%;
-      animation: spin 0.6s linear infinite;
-      vertical-align: middle;
-      margin-right: 5px;
-    }
-
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
-    /* Footer */
-    footer {
-      background: var(--surface);
-      border-top: 1px solid var(--border);
-      padding: 40px 20px 28px;
-      text-align: center;
-    }
-
-    .footer-brand {
-      font-size: 1.1rem;
-      font-weight: 800;
-      color: #fff;
-      margin-bottom: 6px;
-    }
-
-    .footer-brand span {
-      background: linear-gradient(135deg, var(--purple), var(--purple-light));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .footer-tagline {
-      font-size: 0.82rem;
-      color: var(--muted);
-      margin-bottom: 20px;
-    }
-
-    .footer-links {
-      display: flex;
-      gap: 20px;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin-bottom: 20px;
-    }
-
-    .footer-links a {
-      color: var(--muted);
-      font-size: 0.8rem;
-      text-decoration: none;
-      transition: color 0.2s;
-    }
-
-    .footer-links a:hover {
-      color: var(--purple-light);
-    }
-
-    .footer-copy {
-      font-size: 0.74rem;
-      color: #333;
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.3);
     }
   </style>
 </head>
 
-<body>
+<body class="bg-background text-foreground font-sans min-h-screen antialiased selection:bg-emerald-500/20 selection:text-emerald-300">
 
-  <header>
-    <a class="logo" href="/">
-      <div class="logo-icon">S</div>
-      <div class="logo-text">
-        <h1>SoundTrackDB</h1>
-        <p>by CNF1G · cnf1g & shreyash</p>
-      </div>
-    </a>
-    <nav>
-      <a href="#token">Token</a>
-      <a href="#playground">Try</a>
-      <a href="#soundtracks">Soundtracks</a>
-      <a href="#endpoints">Endpoints</a>
-      <a href="#docs">Docs</a>
-    </nav>
-    <span class="badge">FREE &amp; UNLIMITED</span>
-  </header>
-
-  <div class="hero">
-    <div class="hero-tag">🎵 CNF1G · Open API</div>
-    <h2>Spotify Data.<br><span>Zero Credentials.</span></h2>
-    <p>Access Spotify's full catalogue — tracks, albums, artists and playlists — completely free, no setup required.</p>
-    <div class="pills">
-      <div class="pill"><b>✓</b> No API Key</div>
-      <div class="pill"><b>✓</b> No Sign Up</div>
-      <div class="pill"><b>✓</b> Fair Use</div>
-      <div class="pill"><b>✓</b> Pretty JSON</div>
-      <div class="pill"><b>✓</b> Server Ready</div>
-      <div class="pill"><b>✓</b> HTTPS</div>
-    </div>
+  <!-- Background decorative grid / ambient glow -->
+  <div class="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
+    <div class="absolute -top-40 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-gradient-to-b from-emerald-500/10 via-violet-500/5 to-transparent blur-3xl opacity-70"></div>
+    <div class="absolute inset-0 bg-[linear-gradient(to_right,#1f1f2315_1px,transparent_1px),linear-gradient(to_bottom,#1f1f2315_1px,transparent_1px)] bg-[size:4rem_4rem]"></div>
   </div>
 
-  <main>
-
-    <!-- Live Token -->
-    <p class="section-title" id="token">Live Access Token</p>
-    <div class="token-banner">
-      <div class="token-header">
-        <span class="token-label">Current active Spotify access token</span>
-        <div class="token-meta">
-          <div class="token-status">
-            <div class="dot loading" id="tokenDot"></div>
-            <span id="tokenStatusText">Fetching...</span>
-          </div>
-          <span class="token-expiry" id="tokenExpiry"></span>
-          <button class="btn btn-outline" onclick="loadToken(true)" style="padding:5px 12px;font-size:0.74rem;">↻
-            Refresh</button>
+  <!-- Navigation Bar (shadcn Navbar style) -->
+  <header class="sticky top-0 z-50 w-full border-b border-border/80 bg-background/80 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+      
+      <!-- Brand Logo -->
+      <a href="/" class="flex items-center gap-3 group transition-opacity hover:opacity-90">
+        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center shadow-lg shadow-emerald-950/40 border border-emerald-400/20">
+          <i data-lucide="disc-3" class="w-5 h-5 text-white animate-spin-slow"></i>
         </div>
+        <div class="flex flex-col">
+          <div class="flex items-center gap-2">
+            <span class="font-bold tracking-tight text-white text-base">SoundTrackDB</span>
+            <span class="inline-flex items-center rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">v1.0</span>
+          </div>
+          <span class="text-[11px] text-zinc-500 font-medium tracking-tight">by CNF1G · cnf1g & shreyash</span>
+        </div>
+      </a>
+
+      <!-- Navigation Links -->
+      <nav class="hidden md:flex items-center gap-1 text-sm font-medium text-zinc-400">
+        <a href="#token-bar" class="px-3 py-1.5 rounded-md hover:text-white hover:bg-zinc-900/60 transition-colors">Session Token</a>
+        <a href="#studio" class="px-3 py-1.5 rounded-md hover:text-white hover:bg-zinc-900/60 transition-colors">Studio</a>
+        <a href="#endpoints" class="px-3 py-1.5 rounded-md hover:text-white hover:bg-zinc-900/60 transition-colors">Endpoints</a>
+        <a href="#status-panel" class="px-3 py-1.5 rounded-md hover:text-white hover:bg-zinc-900/60 transition-colors">Status & Metrics</a>
+        <a href="/docs" target="_blank" class="px-3 py-1.5 rounded-md text-emerald-400 hover:text-emerald-300 hover:bg-emerald-950/30 transition-colors flex items-center gap-1.5">
+          <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
+          <span>Interactive Docs</span>
+        </a>
+      </nav>
+
+      <!-- Status & Actions -->
+      <div class="flex items-center gap-3">
+        <a href="#status-panel" class="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-xs text-zinc-300 transition-colors cursor-pointer">
+          <span id="navStatusDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span id="navStatusText" class="font-medium">Operational</span>
+        </a>
+        <a href="https://github.com/justshreyash/soundtrackdb" target="_blank" rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 h-8 px-3 rounded-md bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-800 hover:border-zinc-700 text-xs font-medium transition-all shadow-sm">
+          <i data-lucide="github" class="w-3.5 h-3.5"></i>
+          <span>GitHub</span>
+        </a>
       </div>
-      <div class="token-value-row">
-        <div class="token-value loading-text" id="tokenValue">Fetching token from Spotify...</div>
-        <button class="btn" id="copyTokenBtn" onclick="copyToken()" disabled>Copy</button>
-      </div>
-      <div class="token-usage-hint">
-        Use as: <code>Authorization: Bearer &lt;token&gt;</code> · Valid ~1 hour · Auto-refreshes every 30 min
-      </div>
+
     </div>
+  </header>
 
-    <!-- Search Playground -->
-    <p class="section-title" id="playground">Try It Live</p>
-    <div class="try-box">
-      <div class="input-row">
-        <input id="searchQ" type="text" placeholder="e.g. Faded, Drake, Chill" value="Faded" />
-        <select id="searchType">
-          <option value="track">Track</option>
-          <option value="album">Album</option>
-          <option value="artist">Artist</option>
-          <option value="playlist">Playlist</option>
-          <option value="episode">Episode</option>
-          <option value="show">Show</option>
-        </select>
-        <input id="searchLimit" type="number" value="3" min="1" max="50" style="max-width:80px;" />
-        <button class="btn" id="searchBtn" onclick="runSearch()">Search</button>
-      </div>
-      <pre id="searchResult" class="result-box"></pre>
-    </div>
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-12">
 
-    <!-- Movie Soundtrack API v1 -->
-    <p class="section-title" id="soundtracks">🎬 Movie Soundtrack API (v1)</p>
-    <div class="try-box" style="border-color: #7c3aed66;">
-      <p style="font-size:0.86rem;color:var(--text);margin-bottom:12px;">Map movie &amp; TV titles to verified Spotify soundtrack playlists via IMDb, TMDB, slug, or ID.</p>
-      <div class="input-row">
-        <select id="stMode" style="max-width:140px;">
-          <option value="imdb">IMDb ID</option>
-          <option value="tmdb">TMDB ID</option>
-          <option value="slug">Slug</option>
-          <option value="id">Internal ID</option>
-          <option value="list">All Titles</option>
-        </select>
-        <input id="stInput" type="text" placeholder="e.g. tt13070038, apex-2026, 993710" value="tt13070038" />
-        <button class="btn" id="stBtn" onclick="runSoundtrackLookup()">Resolve Music</button>
+    <!-- Hero Section -->
+    <section class="text-center py-10 sm:py-16">
+      
+      <!-- Eyebrow Badge -->
+      <div class="inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-900/80 px-3.5 py-1 text-xs font-medium text-zinc-300 mb-6 shadow-sm backdrop-blur-sm">
+        <span class="flex h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+        <span>SoundTrackDB Music Intelligence Engine</span>
+        <span class="text-zinc-600">|</span>
+        <span class="text-emerald-400 font-semibold">100% Free & Unlimited</span>
       </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
-        <span style="font-size:0.75rem;color:var(--muted);align-self:center;">Quick Demos:</span>
-        <button class="pill" onclick="setSoundtrackDemo('imdb','tt13070038')" style="cursor:pointer;background:var(--surface2);">⚡ The Electric State (IMDb)</button>
-        <button class="pill" onclick="setSoundtrackDemo('tmdb','993710')" style="cursor:pointer;background:var(--surface2);">⚡ Back in Action (TMDB)</button>
-        <button class="pill" onclick="setSoundtrackDemo('slug','apex-2026')" style="cursor:pointer;background:var(--surface2);">⚡ Apex (Slug)</button>
-        <button class="pill" onclick="setSoundtrackDemo('list','')" style="cursor:pointer;background:var(--surface2);">⚡ All 25 Movies</button>
-      </div>
-      <pre id="stResult" class="result-box"></pre>
-      <!-- Response field legend -->
-      <div style="margin-top:14px;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px;font-size:0.75rem;line-height:1.7;">
-        <span style="color:var(--purple-light);font-weight:700;letter-spacing:1px;font-size:0.68rem;">RESPONSE FIELDS — music[]</span><br>
-        <span style="color:#a78bfa;">confidence</span> <span style="color:var(--muted);">float 0.0–1.0 &nbsp;·&nbsp; 1.0 = official+verified &nbsp;·&nbsp; 0.8 = community+verified &nbsp;·&nbsp; 0.6 = official+unverified &nbsp;·&nbsp; 0.4 = community+unverified</span><br>
-        <span style="color:#a78bfa;">match_type</span> <span style="color:var(--muted);">&quot;exact&quot; = resolved via IMDb/TMDB id &nbsp;·&nbsp; &quot;agnostic&quot; = resolved via title+year text match only</span><br>
-        <span style="color:#a78bfa;">verified</span> <span style="color:var(--muted);">true = manually confirmed or official source &nbsp;·&nbsp; false = auto-matched, not yet confirmed</span>
-      </div>
-    </div>
 
-    <!-- Endpoint Cards -->
-    <p class="section-title" id="endpoints">Endpoints</p>
-    <div class="endpoint-grid">
-      <div class="endpoint-card" onclick="loadToken()">
-        <div class="ep-method">GET</div>
-        <div class="ep-path">/api/token</div>
-        <div class="ep-desc">Get current Spotify access token</div>
-      </div>
-      <div class="endpoint-card" onclick="quickCall('/api/health','quickResult')">
-        <div class="ep-method">GET</div>
-        <div class="ep-path">/api/health</div>
-        <div class="ep-desc">API health check and uptime</div>
-      </div>
-      <div class="endpoint-card" onclick="quickCall('/api/search?q=Faded&type=track&limit=3','quickResult')">
-        <div class="ep-method">GET</div>
-        <div class="ep-path">/api/search</div>
-        <div class="ep-params">?q= &amp;type= &amp;limit= &amp;offset=</div>
-        <div class="ep-desc">Search tracks, albums, artists, playlists</div>
-      </div>
-      <div class="endpoint-card" onclick="quickCall('/api/track/3n3Ppam7vgaVa1iaRUIOKE','quickResult')">
-        <div class="ep-method">GET</div>
-        <div class="ep-path">/api/track/:id</div>
-        <div class="ep-desc">Track details by Spotify ID</div>
-      </div>
-      <div class="endpoint-card" onclick="quickCall('/api/album/1weenld61qoidwYuZ1GESA','quickResult')">
-        <div class="ep-method">GET</div>
-        <div class="ep-path">/api/album/:id</div>
-        <div class="ep-desc">Album details and track listing</div>
-      </div>
-      <div class="endpoint-card" onclick="quickCall('/api/playlist/37i9dQZEVXbMDoHDwVN2tF','quickResult')">
-        <div class="ep-method">GET</div>
-        <div class="ep-path">/api/playlist/:id</div>
-        <div class="ep-desc">Playlist info and all tracks</div>
-      </div>
-      <div class="endpoint-card" onclick="quickCall('/api/artist/3TVXtAsR1Inumwj472S9r4','quickResult')">
-        <div class="ep-method">GET</div>
-        <div class="ep-path">/api/artist/:id</div>
-        <div class="ep-desc">Artist profile and metadata</div>
-      </div>
-      <div class="endpoint-card"
-        onclick="quickCall('/api/artist/3TVXtAsR1Inumwj472S9r4/top-tracks?market=US','quickResult')">
-        <div class="ep-method">GET</div>
-        <div class="ep-path">/api/artist/:id/top-tracks</div>
-        <div class="ep-params">?market=US</div>
-        <div class="ep-desc">Artist top tracks by market</div>
-      </div>
-      <div class="endpoint-card" onclick="quickCall('/v1/titles/imdb/tt13070038/music','quickResult')">
-        <div class="ep-method" style="background:#059669;color:#fff;">V1</div>
-        <div class="ep-path">/v1/titles/imdb/:id/music</div>
-        <div class="ep-desc">Soundtrack by IMDb ID (e.g. The Electric State)</div>
-      </div>
-      <div class="endpoint-card" onclick="quickCall('/v1/titles/tmdb/993710/music','quickResult')">
-        <div class="ep-method" style="background:#059669;color:#fff;">V1</div>
-        <div class="ep-path">/v1/titles/tmdb/:id/music</div>
-        <div class="ep-desc">Soundtrack by TMDB ID (e.g. Back in Action)</div>
-      </div>
-      <div class="endpoint-card" onclick="quickCall('/v1/titles/slug/apex-2026/music','quickResult')">
-        <div class="ep-method" style="background:#059669;color:#fff;">V1</div>
-        <div class="ep-path">/v1/titles/slug/:slug/music</div>
-        <div class="ep-desc">Soundtrack by movie slug (e.g. apex-2026)</div>
-      </div>
-      <div class="endpoint-card" onclick="quickCall('/v1/titles?limit=5','quickResult')">
-        <div class="ep-method" style="background:#059669;color:#fff;">V1</div>
-        <div class="ep-path">/v1/titles</div>
-        <div class="ep-desc">List cataloged movie titles &amp; music count</div>
-      </div>
-    </div>
-    <div class="try-box" style="margin-top:12px;">
-      <p style="font-size:0.76rem;color:var(--muted);margin-bottom:10px;">Click any card above to preview the live
-        response here</p>
-      <pre id="quickResult" class="result-box"></pre>
-    </div>
+      <!-- Main Headline -->
+      <h1 class="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-white max-w-4xl mx-auto leading-[1.1] mb-6">
+        Spotify Data & Movie Soundtracks.<br class="hidden sm:inline" />
+        <span class="bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-500 bg-clip-text text-transparent">Zero Credentials Needed.</span>
+      </h1>
 
-    <!-- Usage Docs -->
-    <p class="section-title" id="docs">Documentation</p>
+      <!-- Subtitle -->
+      <p class="text-base sm:text-lg text-zinc-400 max-w-2xl mx-auto mb-10 leading-relaxed font-normal">
+        Instantly map movie and TV titles to verified Spotify soundtrack playlists via IMDb, TMDB, or slug. 
+        Or search Spotify's entire catalog with anonymous autonomous 30-minute rotated TOTP tokens.
+      </p>
 
-    <div class="usage-block open" id="doc-token">
-      <div class="usage-head" onclick="toggleDoc('doc-token')">
-        <span class="ep-method">GET</span><span class="usage-path">/api/token</span>
-        <span class="usage-desc-short">Get a live Spotify access token</span><span class="chevron">▶</span>
+      <!-- Primary Action Buttons -->
+      <div class="flex flex-wrap items-center justify-center gap-3.5 mb-14">
+        <a href="#studio"
+          class="inline-flex items-center gap-2 h-10 px-5 rounded-lg bg-zinc-50 hover:bg-zinc-200 text-zinc-950 font-medium text-sm transition-all shadow-md shadow-emerald-950/20">
+          <i data-lucide="play" class="w-4 h-4 fill-zinc-950"></i>
+          <span>Open API Studio</span>
+        </a>
+        <button onclick="copyQuickCurl()" id="quickCurlBtn"
+          class="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 hover:border-zinc-700 font-medium text-sm transition-all">
+          <i data-lucide="terminal" class="w-4 h-4 text-emerald-400"></i>
+          <span>Copy cURL Command</span>
+        </button>
+        <a href="#endpoints"
+          class="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-transparent hover:bg-zinc-900/60 text-zinc-400 hover:text-white font-medium text-sm transition-colors">
+          <span>Explore Endpoints</span>
+          <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+        </a>
       </div>
-      <div class="usage-body">
-        <p style="font-size:0.82rem;color:var(--muted);margin-top:14px;">Returns the current anonymous Spotify
-          web-player token. Use in any Spotify API call.</p>
-        <div class="code-label">Request</div>
-        <div class="code-block">GET /api/token<button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
-        <div class="code-label">Response</div>
-        <div class="code-block">{
-          "provider": "CNF1G",
-          "creator": "shreyash",
-          "success": true,
-          "access_token": "BQDxxxxxx...",
-          "token_type": "Bearer"
-          }<button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
-        <div class="code-label">Use token directly with Spotify</div>
-        <div class="code-block">curl -H "Authorization: Bearer BQDxxxxxx..." \
-          "https://api.spotify.com/v1/search?q=Faded&type=track&limit=5"<button class="copy-btn"
-            onclick="copyCode(this)">Copy</button></div>
-      </div>
-    </div>
 
-    <div class="usage-block" id="doc-search">
-      <div class="usage-head" onclick="toggleDoc('doc-search')">
-        <span class="ep-method">GET</span><span class="usage-path">/api/search</span>
-        <span class="usage-desc-short">Search Spotify catalogue</span><span class="chevron">▶</span>
-      </div>
-      <div class="usage-body">
-        <table class="param-table">
-          <tr>
-            <th>Parameter</th>
-            <th>Type</th>
-            <th>Description</th>
-          </tr>
-          <tr>
-            <td>q</td>
-            <td>string · required</td>
-            <td>Search query e.g. Faded, Drake</td>
-          </tr>
-          <tr>
-            <td>type</td>
-            <td>string · required</td>
-            <td>track, album, artist, playlist, episode, show</td>
-          </tr>
-          <tr>
-            <td>limit</td>
-            <td>number · optional</td>
-            <td>Results to return. Default 10, max 50</td>
-          </tr>
-          <tr>
-            <td>offset</td>
-            <td>number · optional</td>
-            <td>Pagination offset. Default 0</td>
-          </tr>
-        </table>
-        <div class="code-label">Track search</div>
-        <div class="code-block">GET /api/search?q=Faded&type=track&limit=5<button class="copy-btn"
-            onclick="copyCode(this)">Copy</button></div>
-        <div class="code-label">Artist search</div>
-        <div class="code-block">GET /api/search?q=Drake&type=artist&limit=3<button class="copy-btn"
-            onclick="copyCode(this)">Copy</button></div>
-        <div class="code-label">Multiple types</div>
-        <div class="code-block">GET /api/search?q=Chill&type=track,album,playlist&limit=5<button class="copy-btn"
-            onclick="copyCode(this)">Copy</button></div>
-      </div>
-    </div>
+      <!-- Hero Metrics / Spec Grid (shadcn Metric Cards) -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 max-w-4xl mx-auto text-left">
+        
+        <div class="p-4 rounded-xl border border-zinc-800/80 bg-zinc-900/40 backdrop-blur-sm">
+          <div class="flex items-center gap-2 text-zinc-400 mb-1.5 text-xs font-medium">
+            <i data-lucide="key-round" class="w-4 h-4 text-emerald-400"></i>
+            <span>Authentication</span>
+          </div>
+          <div class="text-xl font-bold text-white tracking-tight">Zero Keys</div>
+          <div class="text-xs text-zinc-500 mt-1">No registration, sign-up, or Spotify developer account</div>
+        </div>
 
-    <div class="usage-block" id="doc-track">
-      <div class="usage-head" onclick="toggleDoc('doc-track')">
-        <span class="ep-method">GET</span><span class="usage-path">/api/track/:id</span>
-        <span class="usage-desc-short">Get track by Spotify ID</span><span class="chevron">▶</span>
-      </div>
-      <div class="usage-body">
-        <p style="font-size:0.82rem;color:var(--muted);margin-top:14px;">The ID is the last part of any Spotify track
-          URL: <code
-            style="background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-size:0.74rem;">open.spotify.com/track/<b>3n3Ppam7vgaVa1iaRUIOKE</b></code>
-        </p>
-        <div class="code-label">Example</div>
-        <div class="code-block">GET /api/track/3n3Ppam7vgaVa1iaRUIOKE<button class="copy-btn"
-            onclick="copyCode(this)">Copy</button></div>
-      </div>
-    </div>
+        <div class="p-4 rounded-xl border border-zinc-800/80 bg-zinc-900/40 backdrop-blur-sm">
+          <div class="flex items-center gap-2 text-zinc-400 mb-1.5 text-xs font-medium">
+            <i data-lucide="refresh-cw" class="w-4 h-4 text-emerald-400"></i>
+            <span>Token Rotation</span>
+          </div>
+          <div class="text-xl font-bold text-white tracking-tight">30-Min TOTP</div>
+          <div class="text-xs text-zinc-500 mt-1">Autonomous background refresh with continuous uptime</div>
+        </div>
 
-    <div class="usage-block" id="doc-album">
-      <div class="usage-head" onclick="toggleDoc('doc-album')">
-        <span class="ep-method">GET</span><span class="usage-path">/api/album/:id</span>
-        <span class="usage-desc-short">Get album details and track listing</span><span class="chevron">▶</span>
-      </div>
-      <div class="usage-body">
-        <div class="code-label">Example</div>
-        <div class="code-block">GET /api/album/1weenld61qoidwYuZ1GESA<button class="copy-btn"
-            onclick="copyCode(this)">Copy</button></div>
-      </div>
-    </div>
+        <div class="p-4 rounded-xl border border-zinc-800/80 bg-zinc-900/40 backdrop-blur-sm">
+          <div class="flex items-center gap-2 text-zinc-400 mb-1.5 text-xs font-medium">
+            <i data-lucide="film" class="w-4 h-4 text-emerald-400"></i>
+            <span>Soundtrack Engine</span>
+          </div>
+          <div class="text-xl font-bold text-white tracking-tight">Multi-Identifier</div>
+          <div class="text-xs text-zinc-500 mt-1">Resolves IMDb ID, TMDB ID, slug, and text queries</div>
+        </div>
 
-    <div class="usage-block" id="doc-playlist">
-      <div class="usage-head" onclick="toggleDoc('doc-playlist')">
-        <span class="ep-method">GET</span><span class="usage-path">/api/playlist/:id</span>
-        <span class="usage-desc-short">Get playlist info and tracks</span><span class="chevron">▶</span>
-      </div>
-      <div class="usage-body">
-        <div class="code-label">Example — Global Top 50</div>
-        <div class="code-block">GET /api/playlist/37i9dQZEVXbMDoHDwVN2tF<button class="copy-btn"
-            onclick="copyCode(this)">Copy</button></div>
-      </div>
-    </div>
+        <div class="p-4 rounded-xl border border-zinc-800/80 bg-zinc-900/40 backdrop-blur-sm">
+          <div class="flex items-center gap-2 text-zinc-400 mb-1.5 text-xs font-medium">
+            <i data-lucide="database" class="w-4 h-4 text-emerald-400"></i>
+            <span>Turso Edge DB</span>
+          </div>
+          <div class="text-xl font-bold text-white tracking-tight">&lt;10ms Cache</div>
+          <div class="text-xs text-zinc-500 mt-1">Persistent LibSQL indexing with instant response times</div>
+        </div>
 
-    <div class="usage-block" id="doc-artist">
-      <div class="usage-head" onclick="toggleDoc('doc-artist')">
-        <span class="ep-method">GET</span><span class="usage-path">/api/artist/:id</span>
-        <span class="usage-desc-short">Get artist profile</span><span class="chevron">▶</span>
       </div>
-      <div class="usage-body">
-        <div class="code-label">Example — Drake</div>
-        <div class="code-block">GET /api/artist/3TVXtAsR1Inumwj472S9r4<button class="copy-btn"
-            onclick="copyCode(this)">Copy</button></div>
+
+    </section>
+
+    <!-- Section: Live Token Inspector (shadcn Card) -->
+    <section id="token-bar" class="mb-14 scroll-mt-24">
+      <div class="rounded-xl border border-zinc-800 bg-zinc-900/50 backdrop-blur-md p-5 sm:p-6 shadow-sm">
+        
+        <!-- Header row -->
+        <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-zinc-800/70">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+              <i data-lucide="shield-check" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <h2 class="text-sm font-semibold text-white tracking-tight">Active Spotify Bearer Session</h2>
+              <p class="text-xs text-zinc-400">Public anonymous web-player token generated autonomously</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2 px-2.5 py-1 rounded-md bg-zinc-950 border border-zinc-800 text-xs">
+              <span id="tokenDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span id="tokenStatusText" class="text-zinc-300 font-medium">Active</span>
+              <span class="text-zinc-600">·</span>
+              <span id="tokenExpiry" class="text-zinc-400 font-mono text-[11px]">Valid ~1h</span>
+            </div>
+
+            <button onclick="loadToken(true)" id="refreshTokenBtn"
+              class="inline-flex items-center gap-1.5 h-8 px-3 rounded-md bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium transition-colors border border-zinc-700/60">
+              <i data-lucide="rotate-cw" class="w-3 h-3"></i>
+              <span>Force Rotate</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Token Display row -->
+        <div class="pt-4 flex flex-col sm:flex-row gap-2.5">
+          <div class="relative flex-1">
+            <input id="tokenValue" readonly
+              class="w-full h-10 px-3.5 rounded-lg bg-zinc-950 border border-zinc-800 text-zinc-300 font-mono text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500 selection:bg-emerald-500/30"
+              value="Fetching active Spotify token..." />
+          </div>
+          <button onclick="copyToken()" id="copyTokenBtn" disabled
+            class="inline-flex items-center justify-center gap-2 h-10 px-5 rounded-lg bg-zinc-100 hover:bg-zinc-200 disabled:opacity-40 disabled:hover:bg-zinc-100 text-zinc-950 font-medium text-xs transition-colors shrink-0">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+            <span id="copyTokenLabel">Copy Token</span>
+          </button>
+        </div>
+
+        <!-- Hint -->
+        <div class="mt-3 flex items-center justify-between flex-wrap gap-2 text-[11px] text-zinc-500 font-mono">
+          <span>Header: <code class="text-emerald-400 bg-zinc-950 px-1.5 py-0.5 rounded border border-zinc-800">Authorization: Bearer &lt;token&gt;</code></span>
+          <span class="text-zinc-500 font-sans">Use directly with Spotify API or via SoundTrackDB proxy</span>
+        </div>
+
       </div>
-    </div>
+    </section>
 
-    <div class="usage-block" id="doc-top">
-      <div class="usage-head" onclick="toggleDoc('doc-top')">
-        <span class="ep-method">GET</span><span class="usage-path">/api/artist/:id/top-tracks</span>
-        <span class="usage-desc-short">Artist top tracks by market</span><span class="chevron">▶</span>
+    <!-- Section: The Unified API Studio (The Signature Element) -->
+    <section id="studio" class="mb-16 scroll-mt-24">
+      
+      <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-2 mb-6">
+        <div>
+          <div class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-1">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+            <span>Interactive Studio</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">API Workbench & Live Inspector</h2>
+        </div>
+        <p class="text-xs text-zinc-400 max-w-sm">Execute real-time calls against SoundTrackDB and inspect low-latency responses.</p>
       </div>
-      <div class="usage-body">
-        <table class="param-table">
-          <tr>
-            <th>Parameter</th>
-            <th>Type</th>
-            <th>Description</th>
-          </tr>
-          <tr>
-            <td>market</td>
-            <td>string · optional</td>
-            <td>ISO country code. Default: US. e.g. KE, NG, GB, ZA</td>
-          </tr>
-        </table>
-        <div class="code-label">Example</div>
-        <div class="code-block">GET /api/artist/3TVXtAsR1Inumwj472S9r4/top-tracks?market=KE<button class="copy-btn"
-            onclick="copyCode(this)">Copy</button></div>
-      </div>
-    </div>
 
-    <div class="usage-block" id="doc-v1-soundtrack" style="border-color:#7c3aed44;">
-      <div class="usage-head" onclick="toggleDoc('doc-v1-soundtrack')">
-        <span class="ep-method" style="background:#059669;color:#fff;">V1</span>
-        <span class="usage-path">/v1/titles — Soundtrack API</span>
-        <span class="usage-desc-short">Map movies &amp; TV shows to Spotify playlists</span>
-        <span class="chevron">▶</span>
-      </div>
-      <div class="usage-body">
-        <p style="font-size:0.82rem;color:var(--muted);margin-top:14px;margin-bottom:12px;">Resolves any movie or TV show to its Spotify soundtrack playlist via IMDb ID, TMDB ID, slug, or internal ID. Results are cached in Turso (libSQL) — first call may be slower while auto-ingesting.</p>
+      <!-- Studio Card Container -->
+      <div class="rounded-2xl border border-zinc-800 bg-zinc-900/40 backdrop-blur-md overflow-hidden shadow-xl">
+        
+        <div class="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-zinc-800">
+          
+          <!-- Left Column: Controls & Query Parameters (col-span-5) -->
+          <div class="lg:col-span-5 p-6 flex flex-col justify-between">
+            
+            <div>
+              <!-- Segmented Tab Navigation (shadcn Tabs style) -->
+              <div class="grid grid-cols-3 p-1 rounded-lg bg-zinc-950 border border-zinc-800/80 mb-6 text-xs font-medium text-zinc-400">
+                <button onclick="switchStudioTab('soundtrack')" id="tabBtn-soundtrack"
+                  class="py-2 rounded-md transition-all text-white bg-zinc-800 font-semibold shadow-sm flex items-center justify-center gap-1.5 cursor-pointer active:scale-95">
+                  <i data-lucide="film" class="w-3.5 h-3.5 text-emerald-400 pointer-events-none"></i>
+                  <span class="pointer-events-none">Soundtracks</span>
+                </button>
+                <button onclick="switchStudioTab('search')" id="tabBtn-search"
+                  class="py-2 rounded-md transition-all hover:text-white flex items-center justify-center gap-1.5 cursor-pointer active:scale-95">
+                  <i data-lucide="search" class="w-3.5 h-3.5 pointer-events-none"></i>
+                  <span class="pointer-events-none">Spotify Search</span>
+                </button>
+                <button onclick="switchStudioTab('endpoints')" id="tabBtn-endpoints"
+                  class="py-2 rounded-md transition-all hover:text-white flex items-center justify-center gap-1.5 cursor-pointer active:scale-95">
+                  <i data-lucide="zap" class="w-3.5 h-3.5 pointer-events-none"></i>
+                  <span class="pointer-events-none">Presets</span>
+                </button>
+              </div>
 
-        <table class="param-table">
-          <tr><th>Endpoint</th><th>Example</th><th>Description</th></tr>
-          <tr>
-            <td>/v1/titles/imdb/:id/music</td>
-            <td>tt13070038</td>
-            <td>Lookup by IMDb ID (fastest, most accurate)</td>
-          </tr>
-          <tr>
-            <td>/v1/titles/tmdb/:id/music</td>
-            <td>993710</td>
-            <td>Lookup by TMDB numeric ID</td>
-          </tr>
-          <tr>
-            <td>/v1/titles/slug/:slug/music</td>
-            <td>back-in-action-2025</td>
-            <td>Lookup by URL-safe slug</td>
-          </tr>
-          <tr>
-            <td>/v1/titles</td>
-            <td>?q=apex&amp;year=2026&amp;limit=10</td>
-            <td>List / search catalogued titles</td>
-          </tr>
-        </table>
+              <!-- Tab Panel 1: Movie Soundtracks (v1) -->
+              <div id="panel-soundtrack" class="space-y-4">
+                <div>
+                  <label class="block text-xs font-medium text-zinc-300 mb-1.5">Identifier Mode</label>
+                  <select id="stMode" onchange="updateSoundtrackPlaceholder()"
+                    class="w-full h-9 px-3 rounded-lg bg-zinc-950 border border-zinc-800 text-zinc-200 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                    <option value="imdb">IMDb ID (e.g. tt13070038)</option>
+                    <option value="tmdb">TMDB ID (e.g. 993710)</option>
+                    <option value="slug">Movie Slug (e.g. apex-2026)</option>
+                    <option value="resolve">Universal Title Match (?title=...)</option>
+                    <option value="id">Internal Database ID</option>
+                    <option value="list">All Catalog Titles (?limit=25)</option>
+                  </select>
+                </div>
 
-        <div class="code-label">Query params</div>
-        <table class="param-table">
-          <tr><th>Param</th><th>Type</th><th>Description</th></tr>
-          <tr><td>force</td><td>bool · optional</td><td>Re-fetch from Spotify even if cached (e.g. ?force=true)</td></tr>
-          <tr><td>type</td><td>string · optional</td><td>movie or tv — hints TMDB lookup for /tmdb/ route</td></tr>
-        </table>
+                <div>
+                  <label class="block text-xs font-medium text-zinc-300 mb-1.5">Target Value</label>
+                  <input id="stInput" type="text" value="tt13070038"
+                    class="w-full h-9 px-3 rounded-lg bg-zinc-950 border border-zinc-800 text-zinc-200 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                    placeholder="e.g. tt13070038" />
+                </div>
 
-        <div class="code-label">Example response</div>
-        <div class="code-block">{
+                <!-- Quick Presets -->
+                <div>
+                  <span class="block text-[11px] font-medium text-zinc-500 mb-2">Instant Quick Presets</span>
+                  <div class="flex flex-wrap gap-1.5">
+                    <button onclick="setSoundtrackPreset('imdb', 'tt13070038')"
+                      class="px-2.5 py-1 rounded-md bg-zinc-950 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 hover:border-zinc-700 text-[11px] font-medium transition-colors">
+                      ⚡ The Electric State
+                    </button>
+                    <button onclick="setSoundtrackPreset('tmdb', '993710')"
+                      class="px-2.5 py-1 rounded-md bg-zinc-950 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 hover:border-zinc-700 text-[11px] font-medium transition-colors">
+                      ⚡ Back in Action
+                    </button>
+                    <button onclick="setSoundtrackPreset('slug', 'apex-2026')"
+                      class="px-2.5 py-1 rounded-md bg-zinc-950 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 hover:border-zinc-700 text-[11px] font-medium transition-colors">
+                      ⚡ Apex (2026)
+                    </button>
+                    <button onclick="setSoundtrackPreset('list', '')"
+                      class="px-2.5 py-1 rounded-md bg-zinc-950 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 hover:border-zinc-700 text-[11px] font-medium transition-colors">
+                      ⚡ All Catalog
+                    </button>
+                  </div>
+                </div>
+
+                <button onclick="runSoundtrackLookup()" id="stBtn"
+                  class="w-full h-10 mt-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-semibold text-xs transition-colors flex items-center justify-center gap-2 shadow-sm">
+                  <i data-lucide="play" class="w-3.5 h-3.5 fill-zinc-950"></i>
+                  <span id="stBtnText">Resolve Soundtrack</span>
+                </button>
+              </div>
+
+              <!-- Tab Panel 2: Spotify Search -->
+              <div id="panel-search" class="space-y-4 hidden">
+                <div>
+                  <label class="block text-xs font-medium text-zinc-300 mb-1.5">Search Query</label>
+                  <input id="searchQ" type="text" value="Faded"
+                    class="w-full h-9 px-3 rounded-lg bg-zinc-950 border border-zinc-800 text-zinc-200 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                    placeholder="e.g. Faded, Drake, Hans Zimmer" />
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-xs font-medium text-zinc-300 mb-1.5">Type</label>
+                    <select id="searchType"
+                      class="w-full h-9 px-3 rounded-lg bg-zinc-950 border border-zinc-800 text-zinc-200 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                      <option value="track">Track</option>
+                      <option value="album">Album</option>
+                      <option value="artist">Artist</option>
+                      <option value="playlist">Playlist</option>
+                      <option value="episode">Episode</option>
+                      <option value="show">Show</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-medium text-zinc-300 mb-1.5">Limit</label>
+                    <input id="searchLimit" type="number" value="3" min="1" max="50"
+                      class="w-full h-9 px-3 rounded-lg bg-zinc-950 border border-zinc-800 text-zinc-200 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500" />
+                  </div>
+                </div>
+
+                <!-- Search Presets -->
+                <div>
+                  <span class="block text-[11px] font-medium text-zinc-500 mb-2">Quick Queries</span>
+                  <div class="flex flex-wrap gap-1.5">
+                    <button onclick="setSearchPreset('Faded', 'track')"
+                      class="px-2.5 py-1 rounded-md bg-zinc-950 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 hover:border-zinc-700 text-[11px] font-medium transition-colors">
+                      🎵 Faded (Track)
+                    </button>
+                    <button onclick="setSearchPreset('Interstellar', 'album')"
+                      class="px-2.5 py-1 rounded-md bg-zinc-950 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 hover:border-zinc-700 text-[11px] font-medium transition-colors">
+                      🎵 Interstellar (Album)
+                    </button>
+                    <button onclick="setSearchPreset('Hans Zimmer', 'artist')"
+                      class="px-2.5 py-1 rounded-md bg-zinc-950 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 hover:border-zinc-700 text-[11px] font-medium transition-colors">
+                      🎵 Hans Zimmer (Artist)
+                    </button>
+                  </div>
+                </div>
+
+                <button onclick="runSearch()" id="searchBtn"
+                  class="w-full h-10 mt-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-semibold text-xs transition-colors flex items-center justify-center gap-2 shadow-sm">
+                  <i data-lucide="search" class="w-3.5 h-3.5"></i>
+                  <span id="searchBtnText">Run Spotify Query</span>
+                </button>
+              </div>
+
+              <!-- Tab Panel 3: Quick Endpoint Triggers -->
+              <div id="panel-endpoints" class="space-y-2.5 hidden">
+                <span class="block text-xs font-medium text-zinc-400 mb-2">Direct Core Endpoints</span>
+                
+                <div class="space-y-1.5 max-h-[250px] overflow-y-auto pr-1">
+                  <button onclick="triggerQuickCall('/api/health')"
+                    class="w-full flex items-center justify-between p-2.5 rounded-lg bg-zinc-950 hover:bg-zinc-900 border border-zinc-800/80 text-left transition-colors group">
+                    <div class="flex items-center gap-2">
+                      <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-zinc-800 text-emerald-400">GET</span>
+                      <span class="font-mono text-xs text-zinc-200">/api/health</span>
+                    </div>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-zinc-600 group-hover:text-zinc-300 transition-colors"></i>
+                  </button>
+
+                  <button onclick="triggerQuickCall('/api/track/3n3Ppam7vgaVa1iaRUIOKE')"
+                    class="w-full flex items-center justify-between p-2.5 rounded-lg bg-zinc-950 hover:bg-zinc-900 border border-zinc-800/80 text-left transition-colors group">
+                    <div class="flex items-center gap-2">
+                      <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-zinc-800 text-emerald-400">GET</span>
+                      <span class="font-mono text-xs text-zinc-200">/api/track/:id</span>
+                    </div>
+                    <span class="text-[11px] text-zinc-500">Alan Walker</span>
+                  </button>
+
+                  <button onclick="triggerQuickCall('/api/album/1weenld61qoidwYuZ1GESA')"
+                    class="w-full flex items-center justify-between p-2.5 rounded-lg bg-zinc-950 hover:bg-zinc-900 border border-zinc-800/80 text-left transition-colors group">
+                    <div class="flex items-center gap-2">
+                      <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-zinc-800 text-emerald-400">GET</span>
+                      <span class="font-mono text-xs text-zinc-200">/api/album/:id</span>
+                    </div>
+                    <span class="text-[11px] text-zinc-500">Album Tracks</span>
+                  </button>
+
+                  <button onclick="triggerQuickCall('/api/artist/3TVXtAsR1Inumwj472S9r4')"
+                    class="w-full flex items-center justify-between p-2.5 rounded-lg bg-zinc-950 hover:bg-zinc-900 border border-zinc-800/80 text-left transition-colors group">
+                    <div class="flex items-center gap-2">
+                      <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-zinc-800 text-emerald-400">GET</span>
+                      <span class="font-mono text-xs text-zinc-200">/api/artist/:id</span>
+                    </div>
+                    <span class="text-[11px] text-zinc-500">Drake Profile</span>
+                  </button>
+
+                  <button onclick="triggerQuickCall('/api/artist/3TVXtAsR1Inumwj472S9r4/top-tracks?market=US')"
+                    class="w-full flex items-center justify-between p-2.5 rounded-lg bg-zinc-950 hover:bg-zinc-900 border border-zinc-800/80 text-left transition-colors group">
+                    <div class="flex items-center gap-2">
+                      <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-zinc-800 text-emerald-400">GET</span>
+                      <span class="font-mono text-xs text-zinc-200">/api/artist/:id/top-tracks</span>
+                    </div>
+                    <span class="text-[11px] text-zinc-500">US Top</span>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Field Legend Collapsible Hint -->
+            <div class="mt-6 pt-4 border-t border-zinc-800/70 text-[11px] text-zinc-500">
+              <span class="text-zinc-400 font-medium">Resolution metadata:</span>
+              <div class="mt-1 flex items-center gap-3">
+                <span><b class="text-emerald-400 font-normal">exact</b>: IMDb/TMDB ID match</span>
+                <span><b class="text-zinc-300 font-normal">verified</b>: Official confirmed</span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Right Column: Live Terminal Response Inspector (col-span-7) -->
+          <div class="lg:col-span-7 bg-zinc-950 flex flex-col h-[520px]">
+            
+            <!-- Terminal Header Bar -->
+            <div class="h-11 px-4 border-b border-zinc-800/80 flex items-center justify-between gap-3 bg-zinc-950/90 select-none">
+              
+              <!-- Window controls + path -->
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="flex items-center gap-1.5">
+                  <div class="w-2.5 h-2.5 rounded-full bg-zinc-800"></div>
+                  <div class="w-2.5 h-2.5 rounded-full bg-zinc-800"></div>
+                  <div class="w-2.5 h-2.5 rounded-full bg-zinc-800"></div>
+                </div>
+                <div id="inspectorPath" class="font-mono text-xs text-zinc-400 truncate max-w-[280px]">
+                  GET /v1/titles/imdb/tt13070038/music
+                </div>
+              </div>
+
+              <!-- Status Badge + Latency + Copy -->
+              <div class="flex items-center gap-2 shrink-0">
+                <span id="inspectorStatus"
+                  class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  200 OK
+                </span>
+                <span id="inspectorLatency" class="text-[10px] font-mono text-zinc-500">32ms</span>
+                
+                <button onclick="copyResponsePayload()" id="copyResponseBtn" title="Copy JSON"
+                  class="inline-flex items-center justify-center w-7 h-7 rounded-md bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-800 transition-colors">
+                  <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+
+            </div>
+
+            <!-- JSON Payload Viewport -->
+            <div class="flex-1 p-4 overflow-auto font-mono text-xs leading-relaxed text-zinc-300">
+              <pre id="inspectorPayload" class="whitespace-pre">{
   "provider": "CNF1G",
   "creator": "shreyash",
   "success": true,
   "title": {
-    "id": "2",
-    "name": "Back in Action",
+    "id": "1",
+    "name": "The Electric State",
     "year": 2025,
     "type": "movie",
-    "imdb_id": "tt21192188",
-    "tmdb_id": "993710",
-    "slug": "back-in-action-2025"
+    "imdb_id": "tt13070038",
+    "tmdb_id": "701121",
+    "slug": "the-electric-state-2025"
   },
   "music": [
     {
-      "id": "st-2",
+      "id": "st-1",
       "platform": "spotify",
       "type": "playlist",
-      "playlist_id": "4ELkRqKThShCLqkkQ1xRY0",
-      "url": "https://open.spotify.com/playlist/4ELkRqKThShCLqkkQ1xRY0",
-      "source": "community",
+      "playlist_id": "0D47p1Qj882M3YlOaXvD7h",
+      "url": "https://open.spotify.com/playlist/0D47p1Qj882M3YlOaXvD7h",
+      "source": "official",
       "verified": true,
-      "confidence": 0.8,
+      "confidence": 1.0,
       "match_type": "exact"
     }
   ]
-}<button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+}</pre>
+            </div>
 
-        <div class="code-label">Response fields — music[]</div>
-        <table class="param-table">
-          <tr><th>Field</th><th>Type</th><th>Description</th></tr>
-          <tr>
-            <td>confidence</td>
-            <td>float 0.0–1.0</td>
-            <td>1.0 official+verified · 0.8 community+verified · 0.6 official+unverified · 0.4 community+unverified</td>
-          </tr>
-          <tr>
-            <td>match_type</td>
-            <td>&quot;exact&quot; | &quot;agnostic&quot;</td>
-            <td><b>exact</b> = resolved via IMDb/TMDB ID (most reliable) · <b>agnostic</b> = resolved via title+year text match only</td>
-          </tr>
-          <tr>
-            <td>verified</td>
-            <td>boolean</td>
-            <td>true = manually confirmed or from official Spotify source</td>
-          </tr>
-          <tr>
-            <td>source</td>
-            <td>&quot;official&quot; | &quot;community&quot;</td>
-            <td>official = from Spotify/label · community = curated by a third party</td>
-          </tr>
-        </table>
+            <!-- Terminal Footer -->
+            <div class="px-4 py-2 border-t border-zinc-800/80 bg-zinc-950 text-[11px] font-mono text-zinc-500 flex items-center justify-between">
+              <span id="payloadStats">Payload Size: 618 bytes</span>
+              <span class="text-zinc-600">Content-Type: application/json</span>
+            </div>
 
-        <div class="code-label">Rate-limit response headers (all /v1/* routes)</div>
-        <table class="param-table">
-          <tr><th>Header</th><th>Description</th></tr>
-          <tr><td>X-RateLimit-Limit</td><td>Max requests per minute for your IP</td></tr>
-          <tr><td>X-RateLimit-Remaining</td><td>Requests remaining in current window</td></tr>
-          <tr><td>X-RateLimit-Reset</td><td>Unix timestamp when the window resets</td></tr>
-          <tr><td>Retry-After</td><td>Seconds to wait — only present on 429 responses</td></tr>
-        </table>
+          </div>
 
-        <div class="code-label">curl examples</div>
-        <div class="code-block">GET /v1/titles/imdb/tt13070038/music<button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
-        <div class="code-block">GET /v1/titles/tmdb/993710/music<button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
-        <div class="code-block">GET /v1/titles/slug/back-in-action-2025/music<button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
-        <div class="code-block">GET /v1/titles?q=apex&amp;year=2026&amp;limit=10<button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        </div>
+
       </div>
-    </div>
+
+    </section>
+
+    <!-- Section: Structured Endpoints Directory (shadcn Table / Accordion) -->
+    <section id="endpoints" class="mb-16 scroll-mt-24">
+      
+      <div class="mb-6">
+        <div class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-1">
+          <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
+          <span>API Reference</span>
+        </div>
+        <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">Endpoints Directory</h2>
+        <p class="text-xs text-zinc-400 mt-1">Complete reference of available REST endpoints across the Soundtrack & Spotify engines.</p>
+      </div>
+
+      <!-- Endpoint Cards Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        
+        <!-- Category 1: Movie Soundtracks (v1) -->
+        <div class="rounded-xl border border-zinc-800 bg-zinc-900/30 p-5 space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-semibold">v1</span>
+              <h3 class="text-sm font-semibold text-white">Movie Soundtrack Engine</h3>
+            </div>
+            <span class="text-[11px] text-zinc-500 font-mono">Turso LibSQL</span>
+          </div>
+
+          <div class="space-y-2 pt-1">
+            
+            <div class="p-3 rounded-lg bg-zinc-950/60 border border-zinc-800/60 hover:border-zinc-700 transition-colors">
+              <div class="flex items-center justify-between gap-2">
+                <span class="font-mono text-xs text-emerald-400 font-semibold">GET /v1/titles/imdb/:imdb_id/music</span>
+                <button onclick="loadEndpointToStudio('soundtrack', 'imdb', 'tt13070038')"
+                  class="text-[11px] text-zinc-400 hover:text-white px-2 py-0.5 rounded bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 transition-colors">
+                  Try
+                </button>
+              </div>
+              <p class="text-xs text-zinc-400 mt-1">Lookup Spotify soundtrack playlist by IMDb ID (e.g. tt13070038)</p>
+            </div>
+
+            <div class="p-3 rounded-lg bg-zinc-950/60 border border-zinc-800/60 hover:border-zinc-700 transition-colors">
+              <div class="flex items-center justify-between gap-2">
+                <span class="font-mono text-xs text-emerald-400 font-semibold">GET /v1/titles/tmdb/:tmdb_id/music</span>
+                <button onclick="loadEndpointToStudio('soundtrack', 'tmdb', '993710')"
+                  class="text-[11px] text-zinc-400 hover:text-white px-2 py-0.5 rounded bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 transition-colors">
+                  Try
+                </button>
+              </div>
+              <p class="text-xs text-zinc-400 mt-1">Lookup Spotify soundtrack playlist by numeric TMDB ID (e.g. 993710)</p>
+            </div>
+
+            <div class="p-3 rounded-lg bg-zinc-950/60 border border-zinc-800/60 hover:border-zinc-700 transition-colors">
+              <div class="flex items-center justify-between gap-2">
+                <span class="font-mono text-xs text-emerald-400 font-semibold">GET /v1/titles/slug/:slug/music</span>
+                <button onclick="loadEndpointToStudio('soundtrack', 'slug', 'apex-2026')"
+                  class="text-[11px] text-zinc-400 hover:text-white px-2 py-0.5 rounded bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 transition-colors">
+                  Try
+                </button>
+              </div>
+              <p class="text-xs text-zinc-400 mt-1">Lookup soundtrack playlist by URL-safe movie slug (e.g. apex-2026)</p>
+            </div>
+
+            <div class="p-3 rounded-lg bg-zinc-950/60 border border-zinc-800/60 hover:border-zinc-700 transition-colors">
+              <div class="flex items-center justify-between gap-2">
+                <span class="font-mono text-xs text-emerald-400 font-semibold">GET /v1/titles</span>
+                <button onclick="loadEndpointToStudio('soundtrack', 'list', '')"
+                  class="text-[11px] text-zinc-400 hover:text-white px-2 py-0.5 rounded bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 transition-colors">
+                  Try
+                </button>
+              </div>
+              <p class="text-xs text-zinc-400 mt-1">List all cataloged movie titles with soundtrack association counts</p>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Category 2: Spotify Core Catalog (/api) -->
+        <div class="rounded-xl border border-zinc-800 bg-zinc-900/30 p-5 space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 rounded bg-violet-500/10 text-violet-400 border border-violet-500/20 text-xs font-semibold">core</span>
+              <h3 class="text-sm font-semibold text-white">Spotify Music Catalog</h3>
+            </div>
+            <span class="text-[11px] text-zinc-500 font-mono">Autonomous TOTP</span>
+          </div>
+
+          <div class="space-y-2 pt-1">
+            
+            <div class="p-3 rounded-lg bg-zinc-950/60 border border-zinc-800/60 hover:border-zinc-700 transition-colors">
+              <div class="flex items-center justify-between gap-2">
+                <span class="font-mono text-xs text-zinc-200 font-semibold">GET /api/token</span>
+                <button onclick="loadToken(true)"
+                  class="text-[11px] text-zinc-400 hover:text-white px-2 py-0.5 rounded bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 transition-colors">
+                  Rotate
+                </button>
+              </div>
+              <p class="text-xs text-zinc-400 mt-1">Generate or retrieve current active Spotify Bearer token</p>
+            </div>
+
+            <div class="p-3 rounded-lg bg-zinc-950/60 border border-zinc-800/60 hover:border-zinc-700 transition-colors">
+              <div class="flex items-center justify-between gap-2">
+                <span class="font-mono text-xs text-zinc-200 font-semibold">GET /api/search</span>
+                <button onclick="loadEndpointToStudio('search', 'track', 'Faded')"
+                  class="text-[11px] text-zinc-400 hover:text-white px-2 py-0.5 rounded bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 transition-colors">
+                  Try
+                </button>
+              </div>
+              <p class="text-xs text-zinc-400 mt-1">Search tracks, albums, artists, or playlists (?q=&type=&limit=)</p>
+            </div>
+
+            <div class="p-3 rounded-lg bg-zinc-950/60 border border-zinc-800/60 hover:border-zinc-700 transition-colors">
+              <div class="flex items-center justify-between gap-2">
+                <span class="font-mono text-xs text-zinc-200 font-semibold">GET /api/track/:id</span>
+                <button onclick="triggerQuickCall('/api/track/3n3Ppam7vgaVa1iaRUIOKE')"
+                  class="text-[11px] text-zinc-400 hover:text-white px-2 py-0.5 rounded bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 transition-colors">
+                  Try
+                </button>
+              </div>
+              <p class="text-xs text-zinc-400 mt-1">Full audio metadata, artists, album info, and preview URLs</p>
+            </div>
+
+            <div class="p-3 rounded-lg bg-zinc-950/60 border border-zinc-800/60 hover:border-zinc-700 transition-colors">
+              <div class="flex items-center justify-between gap-2">
+                <span class="font-mono text-xs text-zinc-200 font-semibold">GET /api/artist/:id/top-tracks</span>
+                <button onclick="triggerQuickCall('/api/artist/3TVXtAsR1Inumwj472S9r4/top-tracks?market=US')"
+                  class="text-[11px] text-zinc-400 hover:text-white px-2 py-0.5 rounded bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 transition-colors">
+                  Try
+                </button>
+              </div>
+              <p class="text-xs text-zinc-400 mt-1">Top tracks for any artist localized by market code (?market=US)</p>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- Section: Quickstart Code Snippets (Tabbed Snippets) -->
+    <section id="snippets" class="mb-16 scroll-mt-24">
+      
+      <div class="mb-6">
+        <div class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-1">
+          <i data-lucide="code-2" class="w-3.5 h-3.5"></i>
+          <span>Integration</span>
+        </div>
+        <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">Client Quickstart</h2>
+        <p class="text-xs text-zinc-400 mt-1">Integrate SoundTrackDB into your frontend or backend application in seconds.</p>
+      </div>
+
+      <div class="rounded-xl border border-zinc-800 bg-zinc-950 overflow-hidden shadow-lg">
+        
+        <!-- Snippet tabs -->
+        <div class="h-11 px-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/40">
+          <div class="flex items-center gap-2 text-xs font-medium">
+            <button onclick="switchCodeTab('curl')" id="codeTab-curl"
+              class="px-3 py-1.5 rounded-md bg-zinc-800 text-white transition-colors cursor-pointer active:scale-95">cURL</button>
+            <button onclick="switchCodeTab('node')" id="codeTab-node"
+              class="px-3 py-1.5 rounded-md text-zinc-400 hover:text-white transition-colors cursor-pointer active:scale-95">Node.js (Fetch)</button>
+            <button onclick="switchCodeTab('python')" id="codeTab-python"
+              class="px-3 py-1.5 rounded-md text-zinc-400 hover:text-white transition-colors cursor-pointer active:scale-95">Python</button>
+          </div>
+
+          <button onclick="copyCurrentCodeSnippet()" id="copySnippetBtn"
+            class="inline-flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white transition-colors">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+            <span id="copySnippetLabel">Copy Code</span>
+          </button>
+        </div>
+
+        <!-- Snippet Code Content -->
+        <div class="p-5 font-mono text-xs leading-relaxed text-zinc-300 overflow-x-auto">
+          
+          <pre id="codeSnippet-curl" class="whitespace-pre"># 1. Resolve movie soundtrack by IMDb ID
+curl -s "https://soundtrackdb.cnf1g.com/v1/titles/imdb/tt13070038/music"
+
+# 2. Or search tracks directly from Spotify catalog
+curl -s "https://soundtrackdb.cnf1g.com/api/search?q=Faded&type=track&limit=5"</pre>
+
+          <pre id="codeSnippet-node" class="whitespace-pre hidden">// Fetch movie soundtrack using native fetch
+const res = await fetch('https://soundtrackdb.cnf1g.com/v1/titles/imdb/tt13070038/music');
+const data = await res.json();
+
+console.log('Title:', data.title.name);
+console.log('Spotify Playlist:', data.music[0]?.url);</pre>
+
+          <pre id="codeSnippet-python" class="whitespace-pre hidden">import requests
+
+# Resolve movie soundtrack by IMDb ID
+url = "https://soundtrackdb.cnf1g.com/v1/titles/imdb/tt13070038/music"
+response = requests.get(url).json()
+
+if response.get("success"):
+    title_name = response["title"]["name"]
+    spotify_url = response["music"][0]["url"]
+    print(f"{title_name} soundtrack: {spotify_url}")</pre>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- Section: Architecture & Design Specs -->
+    <section id="specs" class="mb-16 scroll-mt-24">
+      
+      <div class="mb-6">
+        <div class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-1">
+          <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+          <span>Architecture</span>
+        </div>
+        <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">Engine Specifications</h2>
+        <p class="text-xs text-zinc-400 mt-1">Autonomous micro-architecture designed for resilience and zero vendor lock-in.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        
+        <div class="p-5 rounded-xl border border-zinc-800 bg-zinc-900/30">
+          <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-3">
+            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+          </div>
+          <h3 class="text-sm font-semibold text-white mb-1">Ephemeral TOTP Generation</h3>
+          <p class="text-xs text-zinc-400 leading-relaxed">
+            Uses ephemeral token generation synchronized to Spotify's web player infrastructure. Cron rotates tokens every 30 minutes to guarantee high availability without developer keys.
+          </p>
+        </div>
+
+        <div class="p-5 rounded-xl border border-zinc-800 bg-zinc-900/30">
+          <div class="w-8 h-8 rounded-lg bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400 mb-3">
+            <i data-lucide="database" class="w-4 h-4"></i>
+          </div>
+          <h3 class="text-sm font-semibold text-white mb-1">Turso LibSQL Edge Store</h3>
+          <p class="text-xs text-zinc-400 leading-relaxed">
+            Curated movie soundtracks are normalized and persisted in an ultra-low latency distributed SQLite database on Turso, providing instant sub-10ms query responses.
+          </p>
+        </div>
+
+        <div class="p-5 rounded-xl border border-zinc-800 bg-zinc-900/30">
+          <div class="w-8 h-8 rounded-lg bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400 mb-3">
+            <i data-lucide="shield-check" class="w-4 h-4"></i>
+          </div>
+          <h3 class="text-sm font-semibold text-white mb-1">Confidence Scoring Engine</h3>
+          <p class="text-xs text-zinc-400 leading-relaxed">
+            Every soundtrack playlist match includes confidence weights (1.0 = official & verified, 0.8 = community verified) and match categorization (exact ID vs agnostic text search).
+          </p>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- Section: Live System Status & Observability Dashboard (mustToHave.txt sections 18 & 19) -->
+    <section id="status-panel" class="mb-16 scroll-mt-24">
+      <div class="flex items-center justify-between flex-wrap gap-4 mb-6">
+        <div>
+          <div class="inline-flex items-center gap-2 text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-1">
+            <i data-lucide="activity" class="w-3.5 h-3.5"></i>
+            <span>System Observability</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">Live Service Health & Metrics</h2>
+          <p class="text-xs text-zinc-400 mt-1">Real-time health probes, database latency, and percentile performance (p50 / p95 / p99).</p>
+        </div>
+
+        <div class="flex items-center gap-2.5">
+          <button onclick="loadStatusFeed()" id="refreshStatusBtn"
+            class="inline-flex items-center gap-1.5 h-8 px-3 rounded-md bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 text-xs font-medium transition-colors cursor-pointer">
+            <i data-lucide="refresh-cw" class="w-3 h-3"></i>
+            <span>Refresh Status</span>
+          </button>
+          <a href="/docs" target="_blank"
+            class="inline-flex items-center gap-1.5 h-8 px-3 rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-medium transition-colors">
+            <i data-lucide="book-open" class="w-3 h-3"></i>
+            <span>Interactive Docs</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Service Status Cards Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <!-- API Server Card -->
+        <div class="p-5 rounded-xl border border-zinc-800 bg-zinc-900/40 backdrop-blur-sm">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-medium text-zinc-400">Core REST API</span>
+            <span id="apiStatusBadge" class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              Operational
+            </span>
+          </div>
+          <div class="text-xl font-bold text-white tracking-tight" id="statusUptime">Uptime: --</div>
+          <div class="text-xs text-zinc-500 mt-1">Vercel Edge runtime with sliding-window rate limit</div>
+        </div>
+
+        <!-- Database Card -->
+        <div class="p-5 rounded-xl border border-zinc-800 bg-zinc-900/40 backdrop-blur-sm">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-medium text-zinc-400">Turso LibSQL Database</span>
+            <span id="dbStatusBadge" class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              Operational
+            </span>
+          </div>
+          <div class="text-xl font-bold text-white tracking-tight" id="statusDbLatency">Ping: Checking...</div>
+          <div class="text-xs text-zinc-500 mt-1">Persistent titles catalog and alias mapping index</div>
+        </div>
+
+        <!-- Data Resolution Card -->
+        <div class="p-5 rounded-xl border border-zinc-800 bg-zinc-900/40 backdrop-blur-sm">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-medium text-zinc-400">Data Resolution Engine</span>
+            <span id="resolutionStatusBadge" class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              Operational
+            </span>
+          </div>
+          <div class="text-xl font-bold text-white tracking-tight" id="statusCacheHitRate">Cache Hit Rate: --</div>
+          <div class="text-xs text-zinc-500 mt-1">SingleFlight in-flight protection on on-demand queries</div>
+        </div>
+      </div>
+
+      <!-- Real-Time Metrics & Latency Percentiles Strip -->
+      <div class="rounded-xl border border-zinc-800 bg-zinc-900/30 p-5">
+        <div class="text-xs font-semibold text-zinc-300 mb-4 flex items-center justify-between">
+          <span>Telemetry & Percentile Breakdown</span>
+          <a href="/api/metrics" target="_blank" class="text-emerald-400 hover:underline flex items-center gap-1 text-[11px] font-mono">
+            <span>GET /api/metrics</span>
+            <i data-lucide="external-link" class="w-3 h-3"></i>
+          </a>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-left">
+          <div class="p-3 rounded-lg bg-zinc-950/60 border border-zinc-800/60">
+            <div class="text-[11px] text-zinc-500 font-mono uppercase">Total Requests</div>
+            <div class="text-lg font-bold text-white mt-0.5" id="metricTotalReqs">--</div>
+          </div>
+          <div class="p-3 rounded-lg bg-zinc-950/60 border border-zinc-800/60">
+            <div class="text-[11px] text-zinc-500 font-mono uppercase">p50 Latency</div>
+            <div class="text-lg font-bold text-emerald-400 mt-0.5" id="metricP50">--</div>
+          </div>
+          <div class="p-3 rounded-lg bg-zinc-950/60 border border-zinc-800/60">
+            <div class="text-[11px] text-zinc-500 font-mono uppercase">p95 Latency</div>
+            <div class="text-lg font-bold text-teal-400 mt-0.5" id="metricP95">--</div>
+          </div>
+          <div class="p-3 rounded-lg bg-zinc-950/60 border border-zinc-800/60">
+            <div class="text-[11px] text-zinc-500 font-mono uppercase">p99 Latency</div>
+            <div class="text-lg font-bold text-indigo-400 mt-0.5" id="metricP99">--</div>
+          </div>
+        </div>
+        <!-- Diagnostics Quick Links -->
+        <div class="mt-4 pt-3 border-t border-zinc-800/60 flex flex-wrap items-center gap-3 text-[11px] font-mono text-zinc-400">
+          <span class="text-zinc-500 font-sans">Diagnostics:</span>
+          <a href="/health" target="_blank" class="text-zinc-300 hover:text-emerald-400 underline">/health</a>
+          <a href="/health/db" target="_blank" class="text-zinc-300 hover:text-emerald-400 underline">/health/db</a>
+          <a href="/version" target="_blank" class="text-zinc-300 hover:text-emerald-400 underline">/version</a>
+          <a href="/openapi.json" target="_blank" class="text-zinc-300 hover:text-emerald-400 underline">/openapi.json</a>
+          <a href="/docs" target="_blank" class="text-emerald-400 font-semibold hover:underline">/docs</a>
+        </div>
+      </div>
+    </section>
 
   </main>
 
-  <footer>
-    <div class="footer-brand"><span>CNF1G</span></div>
-    <div class="footer-tagline">Built with passion by <strong>cnf1g & shreyash</strong> · India 🇮🇳</div>
-    <div class="footer-links">
-      <a href="/">Home</a>
-      <a href="https://github.com/justshreyash/soundtrackdb" target="_blank">GitHub</a>
+  <!-- Modern Footer -->
+  <footer class="border-t border-zinc-800/80 bg-zinc-950 py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-6">
+      
+      <div class="flex items-center gap-3">
+        <div class="w-7 h-7 rounded-md bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+          <i data-lucide="disc-3" class="w-4 h-4"></i>
+        </div>
+        <div class="flex flex-col">
+          <span class="font-bold text-sm tracking-tight text-white">SoundTrackDB</span>
+          <span class="text-xs text-zinc-500">Built with craft by <strong class="text-zinc-300 font-medium">cnf1g & shreyash</strong> · CNF1G</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-5 text-xs text-zinc-400">
+        <a href="#token-bar" class="hover:text-white transition-colors">Session Token</a>
+        <a href="#studio" class="hover:text-white transition-colors">Workbench</a>
+        <a href="#endpoints" class="hover:text-white transition-colors">Endpoints</a>
+        <a href="https://github.com/justshreyash/soundtrackdb" target="_blank" rel="noopener noreferrer"
+          class="hover:text-white transition-colors flex items-center gap-1">
+          <span>GitHub</span>
+          <i data-lucide="external-link" class="w-3 h-3"></i>
+        </a>
+      </div>
+
+      <div class="text-xs text-zinc-500 font-mono">
+        MIT License · Fair Use API
+      </div>
+
     </div>
-    <div class="footer-copy">© 2026 CNF1G · cnf1g & shreyash · All rights reserved · Free to use under MIT License</div>
   </footer>
 
+  <!-- Client JavaScript Logic -->
   <script>
-    let currentToken = '', tokenFetchedAt = null;
+    // State management
+    let currentToken = '';
+    let tokenFetchedAt = null;
+    let activeSnippetTab = 'curl';
 
+    // Initialize Lucide icons
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      loadToken();
+      loadStatusFeed();
+      setInterval(loadStatusFeed, 30000);
+    });
+
+    // Live System Status Feed
+    async function loadStatusFeed() {
+      try {
+        const res = await fetch('/api/status-feed');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!data.services) return;
+
+        const upSec = data.metrics_summary?.uptime_seconds || 0;
+        const upHours = (upSec / 3600).toFixed(1);
+        const upEl = document.getElementById('statusUptime');
+        if (upEl) upEl.textContent = `Uptime: ${upHours}h (${upSec}s)`;
+
+        const dbLat = data.services.database?.latency_ms;
+        const dbEl = document.getElementById('statusDbLatency');
+        if (dbEl) dbEl.textContent = dbLat !== null && dbLat !== undefined ? `Ping: ${dbLat}ms` : 'Operational';
+
+        const hitRate = data.services.data_resolution?.cache_hit_rate_pct;
+        const hitEl = document.getElementById('statusCacheHitRate');
+        if (hitEl) hitEl.textContent = hitRate !== undefined ? `Cache Hit Rate: ${hitRate}%` : 'Operational';
+
+        const reqsEl = document.getElementById('metricTotalReqs');
+        if (reqsEl) reqsEl.textContent = (data.metrics_summary?.total_requests || 0).toLocaleString();
+        
+        const p50El = document.getElementById('metricP50');
+        if (p50El) p50El.textContent = `${data.metrics_summary?.p50_ms || 0}ms`;
+
+        const p95El = document.getElementById('metricP95');
+        if (p95El) p95El.textContent = `${data.metrics_summary?.p95_ms || 0}ms`;
+
+        const p99El = document.getElementById('metricP99');
+        if (p99El) p99El.textContent = `${data.metrics_summary?.p99_ms || 0}ms`;
+
+        const isAllOp = data.services.api?.status === 'operational' && data.services.database?.status === 'operational';
+        const dot = document.getElementById('navStatusDot');
+        const txt = document.getElementById('navStatusText');
+        if (dot && txt) {
+          dot.className = `w-2 h-2 rounded-full ${isAllOp ? 'bg-emerald-400' : 'bg-amber-400'} animate-pulse`;
+          txt.textContent = isAllOp ? 'Operational' : 'Degraded';
+        }
+      } catch (err) {
+        console.warn('Could not load status feed:', err.message);
+      }
+    }
+
+    // Token Management
     async function loadToken(force = false) {
       const dot = document.getElementById('tokenDot');
       const status = document.getElementById('tokenStatusText');
       const val = document.getElementById('tokenValue');
       const expiry = document.getElementById('tokenExpiry');
       const copyBtn = document.getElementById('copyTokenBtn');
-      dot.className = 'dot loading'; status.textContent = 'Fetching...';
-      val.className = 'token-value loading-text'; val.textContent = force ? 'Refreshing token from Spotify...' : 'Fetching token from Spotify...';
+      const refreshBtn = document.getElementById('refreshTokenBtn');
+
+      dot.className = 'w-2 h-2 rounded-full bg-zinc-500';
+      status.textContent = force ? 'Rotating...' : 'Fetching...';
+      val.value = force ? 'Rotating Spotify token via TOTP...' : 'Fetching active token from Spotify...';
       copyBtn.disabled = true;
+
       try {
         const res = await fetch('/api/token' + (force ? '?force=true' : ''));
         const data = await res.json();
         if (data.success && data.access_token) {
-          currentToken = data.access_token; tokenFetchedAt = Date.now();
-          val.className = 'token-value'; val.textContent = currentToken;
-          dot.className = 'dot'; status.textContent = 'Active';
-          expiry.textContent = 'Valid for ~1 hour';
-          copyBtn.disabled = false; startExpiry();
-        } else throw new Error(data.error || 'Failed');
-      } catch (e) {
-        dot.className = 'dot error'; status.textContent = 'Error';
-        val.className = 'token-value loading-text'; val.textContent = 'Could not fetch token — ' + e.message;
+          currentToken = data.access_token;
+          tokenFetchedAt = Date.now();
+          val.value = currentToken;
+          dot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
+          status.textContent = 'Active';
+          expiry.textContent = 'Valid ~1h';
+          copyBtn.disabled = false;
+          startTokenTimer();
+        } else {
+          throw new Error(data.error || 'Token response invalid');
+        }
+      } catch (err) {
+        dot.className = 'w-2 h-2 rounded-full bg-rose-500';
+        status.textContent = 'Error';
+        val.value = 'Failed to fetch token: ' + err.message;
         expiry.textContent = '';
       }
     }
 
-    function startExpiry() {
-      clearInterval(window._et);
-      window._et = setInterval(() => {
+    function startTokenTimer() {
+      clearInterval(window._tokenTimer);
+      window._tokenTimer = setInterval(() => {
         if (!tokenFetchedAt) return;
-        const rem = 3600 - Math.floor((Date.now() - tokenFetchedAt) / 1000);
-        if (rem <= 0) { clearInterval(window._et); document.getElementById('tokenExpiry').textContent = 'Expired'; document.getElementById('tokenDot').className = 'dot error'; return; }
-        document.getElementById('tokenExpiry').textContent = `Expires in ${Math.floor(rem / 60)}m ${rem % 60}s`;
+        const elapsed = Math.floor((Date.now() - tokenFetchedAt) / 1000);
+        const rem = 3600 - elapsed;
+        const expiry = document.getElementById('tokenExpiry');
+        if (rem <= 0) {
+          clearInterval(window._tokenTimer);
+          expiry.textContent = 'Expired';
+          document.getElementById('tokenDot').className = 'w-2 h-2 rounded-full bg-amber-500';
+          return;
+        }
+        const mins = Math.floor(rem / 60);
+        const secs = rem % 60;
+        expiry.textContent = `Expires in ${mins}m ${secs < 10 ? '0' : ''}${secs}s`;
       }, 1000);
     }
 
     function copyToken() {
       if (!currentToken) return;
       navigator.clipboard.writeText(currentToken).then(() => {
-        const btn = document.getElementById('copyTokenBtn');
-        btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy', 2000);
+        const label = document.getElementById('copyTokenLabel');
+        const oldText = label.textContent;
+        label.textContent = 'Copied!';
+        setTimeout(() => { label.textContent = oldText; }, 2000);
       });
     }
 
-    async function runSearch() {
-      const q = document.getElementById('searchQ').value.trim();
-      const type = document.getElementById('searchType').value;
-      const limit = document.getElementById('searchLimit').value || 3;
-      const btn = document.getElementById('searchBtn');
-      const box = document.getElementById('searchResult');
-      if (!q) return;
-      btn.disabled = true; btn.innerHTML = '<span class="loader"></span>Searching...';
-      box.className = 'result-box visible'; box.textContent = 'Loading...';
-      try {
-        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}&type=${type}&limit=${limit}`);
-        const data = await res.json();
-        box.className = res.ok ? 'result-box visible' : 'result-box visible error';
-        box.textContent = JSON.stringify(data, null, 2);
-      } catch (e) { box.className = 'result-box visible error'; box.textContent = 'Request failed: ' + e.message; }
-      btn.disabled = false; btn.textContent = 'Search';
-    }
-
-    async function quickCall(path, boxId) {
-      const box = document.getElementById(boxId);
-      box.className = 'result-box visible'; box.textContent = 'Loading...';
-      try {
-        const res = await fetch(path);
-        const data = await res.json();
-        box.className = res.ok ? 'result-box visible' : 'result-box visible error';
-        box.textContent = JSON.stringify(data, null, 2);
-      } catch (e) { box.className = 'result-box visible error'; box.textContent = 'Request failed: ' + e.message; }
-    }
-
-    function toggleDoc(id) { document.getElementById(id).classList.toggle('open'); }
-
-    function copyCode(btn) {
-      const text = btn.parentElement.textContent.replace(/Copy|Copied!/g, '').trim();
-      navigator.clipboard.writeText(text).then(() => {
-        btn.textContent = 'Copied!'; btn.classList.add('copied');
-        setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+    function copyQuickCurl() {
+      const curl = `curl -s "${window.location.origin}/v1/titles/imdb/tt13070038/music"`;
+      navigator.clipboard.writeText(curl).then(() => {
+        const btn = document.getElementById('quickCurlBtn');
+        btn.innerHTML = `<i data-lucide="check" class="w-4 h-4 text-emerald-400"></i><span>Copied!</span>`;
+        lucide.createIcons();
+        setTimeout(() => {
+          btn.innerHTML = `<i data-lucide="terminal" class="w-4 h-4 text-emerald-400"></i><span>Copy cURL Command</span>`;
+          lucide.createIcons();
+        }, 2000);
       });
+    }
+
+    // Studio Tab Switching
+    function switchStudioTab(tab) {
+      const tabs = ['soundtrack', 'search', 'endpoints'];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`tabBtn-${t}`);
+        const panel = document.getElementById(`panel-${t}`);
+        if (t === tab) {
+          btn.className = 'py-2 rounded-md transition-all text-white bg-zinc-800 font-semibold shadow-sm flex items-center justify-center gap-1.5 cursor-pointer active:scale-95';
+          panel.classList.remove('hidden');
+        } else {
+          btn.className = 'py-2 rounded-md transition-all hover:text-white flex items-center justify-center gap-1.5 text-zinc-400 cursor-pointer active:scale-95';
+          panel.classList.add('hidden');
+        }
+      });
+      lucide.createIcons();
+    }
+
+    // Studio: Movie Soundtrack Engine
+    function updateSoundtrackPlaceholder() {
+      const mode = document.getElementById('stMode').value;
+      const input = document.getElementById('stInput');
+      if (mode === 'imdb') input.placeholder = 'e.g. tt13070038';
+      else if (mode === 'tmdb') input.placeholder = 'e.g. 993710';
+      else if (mode === 'slug') input.placeholder = 'e.g. apex-2026';
+      else if (mode === 'resolve') input.placeholder = 'e.g. The Electric State';
+      else if (mode === 'id') input.placeholder = 'e.g. 1';
+      else if (mode === 'list') input.placeholder = 'Optional limit (default: 25)';
+    }
+
+    function setSoundtrackPreset(mode, val) {
+      document.getElementById('stMode').value = mode;
+      document.getElementById('stInput').value = val;
+      updateSoundtrackPlaceholder();
+      runSoundtrackLookup();
     }
 
     async function runSoundtrackLookup() {
       const mode = document.getElementById('stMode').value;
       const input = document.getElementById('stInput').value.trim();
-      const box = document.getElementById('stResult');
+      const btnText = document.getElementById('stBtnText');
       const btn = document.getElementById('stBtn');
+
       let path = '/v1/titles';
       if (mode === 'imdb') path = `/v1/titles/imdb/${encodeURIComponent(input)}/music`;
       else if (mode === 'tmdb') path = `/v1/titles/tmdb/${encodeURIComponent(input)}/music`;
       else if (mode === 'slug') path = `/v1/titles/slug/${encodeURIComponent(input)}/music`;
       else if (mode === 'id') path = `/v1/titles/${encodeURIComponent(input)}/music`;
-      else if (mode === 'list') path = `/v1/titles?limit=25`;
+      else if (mode === 'resolve') path = `/v1/titles/resolve?title=${encodeURIComponent(input)}`;
+      else if (mode === 'list') path = `/v1/titles?limit=${input || '25'}`;
 
       btn.disabled = true;
-      btn.innerHTML = '<span class="loader"></span>Resolving...';
-      box.className = 'result-box visible';
-      box.textContent = 'Loading...';
+      btnText.textContent = 'Resolving...';
+      await executeAndInspect('GET', path);
+      btn.disabled = false;
+      btnText.textContent = 'Resolve Soundtrack';
+    }
+
+    // Studio: Spotify Search
+    function setSearchPreset(q, type) {
+      document.getElementById('searchQ').value = q;
+      document.getElementById('searchType').value = type;
+      runSearch();
+    }
+
+    async function runSearch() {
+      const q = document.getElementById('searchQ').value.trim();
+      const type = document.getElementById('searchType').value;
+      const limit = document.getElementById('searchLimit').value || '3';
+      const btn = document.getElementById('searchBtn');
+      const btnText = document.getElementById('searchBtnText');
+
+      if (!q) return;
+      const path = `/api/search?q=${encodeURIComponent(q)}&type=${type}&limit=${limit}`;
+
+      btn.disabled = true;
+      btnText.textContent = 'Searching...';
+      await executeAndInspect('GET', path);
+      btn.disabled = false;
+      btnText.textContent = 'Run Spotify Query';
+    }
+
+    // Studio: Quick Direct Call
+    async function triggerQuickCall(path) {
+      await executeAndInspect('GET', path);
+      // Scroll smoothly to studio if triggered from endpoints table
+      document.getElementById('studio').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Load Endpoint from directory directly into Studio
+    function loadEndpointToStudio(tab, param1, param2) {
+      switchStudioTab(tab);
+      if (tab === 'soundtrack') {
+        setSoundtrackPreset(param1, param2);
+      } else if (tab === 'search') {
+        setSearchPreset(param2, param1);
+      }
+      document.getElementById('studio').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Live Terminal Inspector Core Executor
+    async function executeAndInspect(method, path) {
+      const inspectorPath = document.getElementById('inspectorPath');
+      const inspectorStatus = document.getElementById('inspectorStatus');
+      const inspectorLatency = document.getElementById('inspectorLatency');
+      const inspectorPayload = document.getElementById('inspectorPayload');
+      const payloadStats = document.getElementById('payloadStats');
+
+      inspectorPath.textContent = `${method} ${path}`;
+      inspectorStatus.textContent = 'Pending';
+      inspectorStatus.className = 'inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-zinc-800 text-zinc-400 border border-zinc-700';
+      inspectorLatency.textContent = '...';
+      inspectorPayload.textContent = '// Sending request...';
+
+      const startTime = performance.now();
+
       try {
         const res = await fetch(path);
+        const duration = Math.round(performance.now() - startTime);
         const data = await res.json();
-        box.className = res.ok ? 'result-box visible' : 'result-box visible error';
-        box.textContent = JSON.stringify(data, null, 2);
+        const jsonText = JSON.stringify(data, null, 2);
+
+        inspectorPayload.textContent = jsonText;
+        inspectorLatency.textContent = `${duration}ms`;
+
+        if (res.ok) {
+          inspectorStatus.textContent = `${res.status} OK`;
+          inspectorStatus.className = 'inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+        } else {
+          inspectorStatus.textContent = `${res.status} ${res.statusText || 'Error'}`;
+          inspectorStatus.className = 'inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20';
+        }
+
+        payloadStats.textContent = `Payload Size: ${new Blob([jsonText]).size} bytes`;
       } catch (err) {
-        box.className = 'result-box visible error';
-        box.textContent = 'Request failed: ' + err.message;
+        const duration = Math.round(performance.now() - startTime);
+        inspectorLatency.textContent = `${duration}ms`;
+        inspectorStatus.textContent = 'Failed';
+        inspectorStatus.className = 'inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20';
+        inspectorPayload.textContent = `// Error executing request:\n${err.message}`;
+        payloadStats.textContent = 'Payload Size: 0 bytes';
       }
-      btn.disabled = false;
-      btn.textContent = 'Resolve Music';
     }
 
-    function setSoundtrackDemo(mode, val) {
-      document.getElementById('stMode').value = mode;
-      document.getElementById('stInput').value = val;
-      runSoundtrackLookup();
+    function copyResponsePayload() {
+      const text = document.getElementById('inspectorPayload').textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById('copyResponseBtn');
+        btn.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i>`;
+        lucide.createIcons();
+        setTimeout(() => {
+          btn.innerHTML = `<i data-lucide="copy" class="w-3.5 h-3.5"></i>`;
+          lucide.createIcons();
+        }, 2000);
+      });
     }
 
+    // Code Snippet Tabs
+    function switchCodeTab(lang) {
+      activeSnippetTab = lang;
+      const langs = ['curl', 'node', 'python'];
+      langs.forEach(l => {
+        const btn = document.getElementById(`codeTab-${l}`);
+        const code = document.getElementById(`codeSnippet-${l}`);
+        if (l === lang) {
+          btn.className = 'px-3 py-1.5 rounded-md bg-zinc-800 text-white transition-colors cursor-pointer active:scale-95';
+          code.classList.remove('hidden');
+        } else {
+          btn.className = 'px-3 py-1.5 rounded-md text-zinc-400 hover:text-white transition-colors cursor-pointer active:scale-95';
+          code.classList.add('hidden');
+        }
+      });
+    }
+
+    function copyCurrentCodeSnippet() {
+      const code = document.getElementById(`codeSnippet-${activeSnippetTab}`).textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        const label = document.getElementById('copySnippetLabel');
+        label.textContent = 'Copied!';
+        setTimeout(() => { label.textContent = 'Copy Code'; }, 2000);
+      });
+    }
+
+    // Keydown shortcuts
     document.getElementById('searchQ').addEventListener('keydown', e => { if (e.key === 'Enter') runSearch(); });
     document.getElementById('stInput').addEventListener('keydown', e => { if (e.key === 'Enter') runSoundtrackLookup(); });
-    loadToken();
   </script>
+
 </body>
 
 </html>

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { respond, respondError } = require('../response');
+const { ErrorCodes } = require('../errors');
 const {
   validateImdbId,
   validateTmdbId,
@@ -61,6 +62,15 @@ function formatMusic(soundtracks) {
   }));
 }
 
+function syncTelemetry(req, result) {
+  if (result?._telemetry && req.telemetry) {
+    req.telemetry.cacheHit = Boolean(result._telemetry.cacheHit);
+    req.telemetry.externalFetch = Boolean(result._telemetry.externalFetch);
+    req.telemetry.externalFetchMs = result._telemetry.externalFetchMs;
+    req.telemetry.outcome = result._telemetry.cacheHit ? 'SUCCESS_CACHED' : 'SUCCESS_FRESH';
+  }
+}
+
 // 0. Universal Resolve & Auto-Ingest: GET /v1/titles/resolve?title=...&slug=...&year=...&type=...&force=...
 router.get('/resolve', async (req, res) => {
   const { title, slug, q, year, type } = req.query;
@@ -68,7 +78,7 @@ router.get('/resolve', async (req, res) => {
   const targetTitle = title || q;
 
   if (!targetTitle && !slug) {
-    return respondError(res, 400, 'Parameter "title" (or "q") or "slug" is required');
+    return respondError(res, 400, 'Parameter "title" (or "q") or "slug" is required', ErrorCodes.INVALID_REQUEST);
   }
 
   try {
@@ -81,16 +91,17 @@ router.get('/resolve', async (req, res) => {
     });
 
     if (!result || !result.title) {
-      return respondError(res, 404, `Could not resolve title for: ${targetTitle || slug}`);
+      return respondError(res, 404, `Could not resolve title for: ${targetTitle || slug}`, ErrorCodes.TITLE_NOT_FOUND);
     }
 
+    syncTelemetry(req, result);
     res.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
     return respond(res, 200, {
       title: formatTitle(result.title),
       music: formatMusic(result.soundtracks || []),
     });
   } catch (err) {
-    return respondError(res, 500, `Failed to resolve title: ${err.message}`);
+    return respondError(res, 500, `Failed to resolve title: ${err.message}`, ErrorCodes.INTERNAL_ERROR);
   }
 });
 
@@ -101,15 +112,16 @@ router.get('/imdb/:imdb_id/music', validateImdbId, async (req, res) => {
   try {
     const result = await resolveByImdb(imdb_id, force);
     if (!result || !result.title) {
-      return respondError(res, 404, `Title not found for IMDb ID: ${imdb_id}`);
+      return respondError(res, 404, `Title not found for IMDb ID: ${imdb_id}`, ErrorCodes.TITLE_NOT_FOUND);
     }
+    syncTelemetry(req, result);
     res.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
     return respond(res, 200, {
       title: formatTitle(result.title),
       music: formatMusic(result.soundtracks || []),
     });
   } catch (err) {
-    return respondError(res, 500, `Failed to resolve IMDb ID: ${err.message}`);
+    return respondError(res, 500, `Failed to resolve IMDb ID: ${err.message}`, ErrorCodes.INTERNAL_ERROR);
   }
 });
 
@@ -121,15 +133,16 @@ router.get('/tmdb/:tmdb_id/music', validateTmdbId, async (req, res) => {
   try {
     const result = await resolveByTmdb(tmdb_id, type, force);
     if (!result || !result.title) {
-      return respondError(res, 404, `Title not found for TMDB ID: ${tmdb_id}`);
+      return respondError(res, 404, `Title not found for TMDB ID: ${tmdb_id}`, ErrorCodes.TITLE_NOT_FOUND);
     }
+    syncTelemetry(req, result);
     res.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
     return respond(res, 200, {
       title: formatTitle(result.title),
       music: formatMusic(result.soundtracks || []),
     });
   } catch (err) {
-    return respondError(res, 500, `Failed to resolve TMDB ID: ${err.message}`);
+    return respondError(res, 500, `Failed to resolve TMDB ID: ${err.message}`, ErrorCodes.INTERNAL_ERROR);
   }
 });
 
@@ -141,15 +154,16 @@ router.get('/slug/:slug/music', validateSlug, async (req, res) => {
   try {
     const result = await resolveByTitleOrSlug({ slug, title, year, type, force });
     if (!result || !result.title) {
-      return respondError(res, 404, `Title not found for slug: ${slug}`);
+      return respondError(res, 404, `Title not found for slug: ${slug}`, ErrorCodes.TITLE_NOT_FOUND);
     }
+    syncTelemetry(req, result);
     res.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
     return respond(res, 200, {
       title: formatTitle(result.title),
       music: formatMusic(result.soundtracks || []),
     });
   } catch (err) {
-    return respondError(res, 500, `Failed to resolve slug: ${err.message}`);
+    return respondError(res, 500, `Failed to resolve slug: ${err.message}`, ErrorCodes.INTERNAL_ERROR);
   }
 });
 
@@ -160,15 +174,16 @@ router.get('/:id/music', validateInternalId, async (req, res) => {
   try {
     const result = await resolveById(id, force);
     if (!result || !result.title) {
-      return respondError(res, 404, `Title not found for ID: ${id}`);
+      return respondError(res, 404, `Title not found for ID: ${id}`, ErrorCodes.TITLE_NOT_FOUND);
     }
+    syncTelemetry(req, result);
     res.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
     return respond(res, 200, {
       title: formatTitle(result.title),
       music: formatMusic(result.soundtracks || []),
     });
   } catch (err) {
-    return respondError(res, 500, `Failed to resolve ID: ${err.message}`);
+    return respondError(res, 500, `Failed to resolve ID: ${err.message}`, ErrorCodes.INTERNAL_ERROR);
   }
 });
 
@@ -176,6 +191,11 @@ router.get('/:id/music', validateInternalId, async (req, res) => {
 router.get('/', async (req, res) => {
   const { q, year, type, limit, offset } = req.query;
   try {
+    if (req.telemetry) {
+      req.telemetry.cacheHit = true;
+      req.telemetry.outcome = 'SUCCESS_CACHED';
+    }
+
     const results = await getAllTitles({
       q,
       year,
@@ -201,7 +221,7 @@ router.get('/', async (req, res) => {
       titles: enriched,
     });
   } catch (err) {
-    return respondError(res, 500, `Failed listing titles: ${err.message}`);
+    return respondError(res, 500, `Failed listing titles: ${err.message}`, ErrorCodes.INTERNAL_ERROR);
   }
 });
 
@@ -210,13 +230,13 @@ router.put('/:id/music', validateInternalId, async (req, res) => {
   const { id } = req.params;
   const title = (await getTitleById(id)) || (await getTitleByTmdb(id)) || (await getTitleByImdb(id));
   if (!title) {
-    return respondError(res, 404, `Title not found for ID: ${id}`);
+    return respondError(res, 404, `Title not found for ID: ${id}`, ErrorCodes.TITLE_NOT_FOUND);
   }
 
   const { spotify_playlist_id, spotify_url, type = 'playlist', source = 'official', verified = true } = req.body || {};
   const rawId = spotify_playlist_id || spotify_url;
   if (!rawId) {
-    return respondError(res, 400, 'spotify_playlist_id or spotify_url is required');
+    return respondError(res, 400, 'spotify_playlist_id or spotify_url is required', ErrorCodes.INVALID_REQUEST);
   }
 
   const cleanId = extractPlaylistId(rawId);
@@ -241,7 +261,7 @@ router.delete('/:id/music/:soundtrack_id?', validateInternalId, async (req, res)
   const { id, soundtrack_id } = req.params;
   const title = (await getTitleById(id)) || (await getTitleByTmdb(id)) || (await getTitleByImdb(id));
   if (!title) {
-    return respondError(res, 404, `Title not found for ID: ${id}`);
+    return respondError(res, 404, `Title not found for ID: ${id}`, ErrorCodes.TITLE_NOT_FOUND);
   }
 
   const removed = await removeSoundtracksByTitleId(title.id, soundtrack_id || null);
@@ -260,7 +280,7 @@ router.post('/ingest/tmdb/:tmdb_id', async (req, res) => {
   try {
     const result = await resolveByTmdb(tmdb_id);
     if (!result || !result.title) {
-      return respondError(res, 404, `Could not find movie/TV metadata on TMDB for ID: ${tmdb_id}`);
+      return respondError(res, 404, `Could not find movie/TV metadata on TMDB for ID: ${tmdb_id}`, ErrorCodes.TITLE_NOT_FOUND);
     }
     return respond(res, 200, {
       message: 'Title and soundtrack dynamically ingested from TMDB & Spotify',
@@ -268,7 +288,7 @@ router.post('/ingest/tmdb/:tmdb_id', async (req, res) => {
       music: formatMusic(result.soundtracks || []),
     });
   } catch (err) {
-    return respondError(res, 500, `Dynamic ingestion failed: ${err.message}`);
+    return respondError(res, 500, `Dynamic ingestion failed: ${err.message}`, ErrorCodes.INTERNAL_ERROR);
   }
 });
 
@@ -279,7 +299,7 @@ router.post('/ingest', async (req, res) => {
   if (body.tmdb_id && !body.title) {
     const result = await resolveByTmdb(body.tmdb_id);
     if (!result || !result.title) {
-      return respondError(res, 404, `Could not find metadata on TMDB for ID: ${body.tmdb_id}`);
+      return respondError(res, 404, `Could not find metadata on TMDB for ID: ${body.tmdb_id}`, ErrorCodes.TITLE_NOT_FOUND);
     }
     return respond(res, 200, {
       message: 'Title dynamically ingested from TMDB',
@@ -289,7 +309,7 @@ router.post('/ingest', async (req, res) => {
   }
 
   if (!body || !body.title) {
-    return respondError(res, 400, 'Title or tmdb_id is required for ingestion');
+    return respondError(res, 400, 'Title or tmdb_id is required for ingestion', ErrorCodes.INVALID_REQUEST);
   }
 
   try {
@@ -310,7 +330,7 @@ router.post('/ingest', async (req, res) => {
 
       const validation = await validateSpotifyPlaylist(playlistId);
       if (!validation.valid) {
-        return respondError(res, 400, `Spotify playlist validation failed: ${validation.error}`);
+        return respondError(res, 400, `Spotify playlist validation failed: ${validation.error}`, ErrorCodes.INVALID_REQUEST);
       }
 
       await insertSoundtrack({
@@ -329,23 +349,22 @@ router.post('/ingest', async (req, res) => {
       music: formatMusic(allMusic),
     });
   } catch (err) {
-    return respondError(res, 500, `Ingestion failed: ${err.message}`);
+    return respondError(res, 500, `Ingestion failed: ${err.message}`, ErrorCodes.INTERNAL_ERROR);
   }
 });
 
 // 10. Report Soundtrack Mapping: POST /v1/titles/:id/music/:soundtrack_id/report
-
 router.post('/:id/music/:soundtrack_id/report', validateInternalId, async (req, res) => {
   const { id, soundtrack_id } = req.params;
   try {
     const title = await getTitleById(id);
     if (!title) {
-      return respondError(res, 404, `Title not found for ID: ${id}`);
+      return respondError(res, 404, `Title not found for ID: ${id}`, ErrorCodes.TITLE_NOT_FOUND);
     }
 
     const result = await reportSoundtrack(soundtrack_id);
     if (!result || result.title_id !== String(id)) {
-      return respondError(res, 404, `Soundtrack "${soundtrack_id}" not found for Title ID: ${id}`);
+      return respondError(res, 404, `Soundtrack "${soundtrack_id}" not found for Title ID: ${id}`, ErrorCodes.TITLE_NOT_FOUND);
     }
 
     return respond(res, 200, {
@@ -358,9 +377,8 @@ router.post('/:id/music/:soundtrack_id/report', validateInternalId, async (req, 
       is_active: result.is_active,
     });
   } catch (err) {
-    return respondError(res, 500, `Failed to report soundtrack: ${err.message}`);
+    return respondError(res, 500, `Failed to report soundtrack: ${err.message}`, ErrorCodes.INTERNAL_ERROR);
   }
 });
 
 module.exports = router;
-

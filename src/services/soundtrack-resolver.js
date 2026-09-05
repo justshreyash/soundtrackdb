@@ -11,6 +11,7 @@ const {
 const { fetchTmdbMetadata, fetchImdbMetadata, searchTmdb } = require('./tmdb');
 const { findSoundtrackPlaylist } = require('./soundtrack-finder');
 const { generateSlug } = require('./soundtrack-validator');
+const singleflight = require('./singleflight');
 
 /**
  * Parse a URL-safe slug into a human-readable title and optional release year.
@@ -38,110 +39,143 @@ function parseSlug(slug) {
 
 /**
  * Resolve title & soundtrack by TMDB ID with optional force refresh.
- * match_type = 'exact' (resolved via tmdb_id).
+ * Uses SingleFlight to prevent concurrent duplicate upstream queries.
  */
 async function resolveByTmdb(tmdbId, mediaType, force = false) {
   if (!tmdbId) return null;
   const cleanTmdb = String(tmdbId).trim();
+  const flightKey = `tmdb:${cleanTmdb}:${mediaType || ''}:${force}`;
 
-  let title = await getTitleByTmdb(cleanTmdb);
-  if (title && mediaType && (title.type || '').toLowerCase() !== mediaType.toLowerCase()) {
-    title = null;
-  }
-  let soundtracks = title ? await getSoundtracksForTitle(title.id) : [];
-
-  if (!force && title && soundtracks.length > 0) {
-    return { title, soundtracks };
-  }
-
-  // Fetch metadata from TMDB if not in DB
-  if (!title) {
-    const meta = await fetchTmdbMetadata(cleanTmdb, mediaType);
-    if (meta && meta.title) {
-      const saved = await resolveOrCreateTitle(meta);
-      title = saved.title;
+  return singleflight.do(flightKey, async () => {
+    const startMs = Date.now();
+    let title = await getTitleByTmdb(cleanTmdb);
+    if (title && mediaType && (title.type || '').toLowerCase() !== mediaType.toLowerCase()) {
+      title = null;
     }
-  }
+    let soundtracks = title ? await getSoundtracksForTitle(title.id) : [];
 
-  if (!title) return null;
+    if (!force && title && soundtracks.length > 0) {
+      return {
+        title,
+        soundtracks,
+        _telemetry: { cacheHit: true, externalFetch: false, externalFetchMs: 0 },
+      };
+    }
 
-  // Search Spotify if forced or no active soundtrack exists
-  if (force || soundtracks.length === 0) {
-    const found = await findSoundtrackPlaylist(title.title, title.year);
-    if (found) {
-      if (force) {
-        await removeSoundtracksByTitleId(title.id);
+    // Fetch metadata from TMDB if not in DB
+    const externalStart = Date.now();
+    if (!title) {
+      const meta = await fetchTmdbMetadata(cleanTmdb, mediaType);
+      if (meta && meta.title) {
+        const saved = await resolveOrCreateTitle(meta);
+        title = saved.title;
       }
-      const savedSt = await insertSoundtrack({
-        title_id: title.id,
-        spotify_playlist_id: found.spotify_playlist_id,
-        spotify_url: found.spotify_url,
-        type: found.type || 'playlist',
-        source: found.source || 'official',
-        verified: found.verified,
-        match_type: 'exact',
-      });
-      soundtracks = [savedSt.soundtrack];
     }
-  }
 
-  return { title, soundtracks };
+    if (!title) return null;
+
+    // Search Spotify if forced or no active soundtrack exists
+    if (force || soundtracks.length === 0) {
+      const found = await findSoundtrackPlaylist(title.title, title.year);
+      if (found) {
+        if (force) {
+          await removeSoundtracksByTitleId(title.id);
+        }
+        const savedSt = await insertSoundtrack({
+          title_id: title.id,
+          spotify_playlist_id: found.spotify_playlist_id,
+          spotify_url: found.spotify_url,
+          type: found.type || 'playlist',
+          source: found.source || 'official',
+          verified: found.verified,
+          match_type: 'exact',
+        });
+        soundtracks = [savedSt.soundtrack];
+      }
+    }
+
+    const externalFetchMs = Date.now() - externalStart;
+    return {
+      title,
+      soundtracks,
+      _telemetry: {
+        cacheHit: false,
+        externalFetch: true,
+        externalFetchMs,
+      },
+    };
+  });
 }
 
 /**
  * Resolve title & soundtrack by IMDb ID with optional force refresh.
- * match_type = 'exact' (resolved via imdb_id).
+ * Uses SingleFlight to prevent concurrent duplicate upstream queries.
  */
 async function resolveByImdb(imdbId, force = false) {
   if (!imdbId) return null;
   const cleanImdb = String(imdbId).trim().toLowerCase();
+  const flightKey = `imdb:${cleanImdb}:${force}`;
 
-  let title = await getTitleByImdb(cleanImdb);
-  let soundtracks = title ? await getSoundtracksForTitle(title.id) : [];
+  return singleflight.do(flightKey, async () => {
+    const startMs = Date.now();
+    let title = await getTitleByImdb(cleanImdb);
+    let soundtracks = title ? await getSoundtracksForTitle(title.id) : [];
 
-  if (!force && title && soundtracks.length > 0) {
-    return { title, soundtracks };
-  }
-
-  if (!title) {
-    const meta = await fetchImdbMetadata(cleanImdb);
-    if (meta && meta.title) {
-      const saved = await resolveOrCreateTitle(meta);
-      title = saved.title;
+    if (!force && title && soundtracks.length > 0) {
+      return {
+        title,
+        soundtracks,
+        _telemetry: { cacheHit: true, externalFetch: false, externalFetchMs: 0 },
+      };
     }
-  }
 
-  if (!title) return null;
-
-  if (force || soundtracks.length === 0) {
-    const found = await findSoundtrackPlaylist(title.title, title.year);
-    if (found) {
-      if (force) {
-        await removeSoundtracksByTitleId(title.id);
+    const externalStart = Date.now();
+    if (!title) {
+      const meta = await fetchImdbMetadata(cleanImdb);
+      if (meta && meta.title) {
+        const saved = await resolveOrCreateTitle(meta);
+        title = saved.title;
       }
-      const savedSt = await insertSoundtrack({
-        title_id: title.id,
-        spotify_playlist_id: found.spotify_playlist_id,
-        spotify_url: found.spotify_url,
-        type: found.type || 'playlist',
-        source: found.source || 'official',
-        verified: found.verified,
-        match_type: 'exact',
-      });
-      soundtracks = [savedSt.soundtrack];
     }
-  }
 
-  return { title, soundtracks };
+    if (!title) return null;
+
+    if (force || soundtracks.length === 0) {
+      const found = await findSoundtrackPlaylist(title.title, title.year);
+      if (found) {
+        if (force) {
+          await removeSoundtracksByTitleId(title.id);
+        }
+        const savedSt = await insertSoundtrack({
+          title_id: title.id,
+          spotify_playlist_id: found.spotify_playlist_id,
+          spotify_url: found.spotify_url,
+          type: found.type || 'playlist',
+          source: found.source || 'official',
+          verified: found.verified,
+          match_type: 'exact',
+        });
+        soundtracks = [savedSt.soundtrack];
+      }
+    }
+
+    const externalFetchMs = Date.now() - externalStart;
+    return {
+      title,
+      soundtracks,
+      _telemetry: {
+        cacheHit: false,
+        externalFetch: true,
+        externalFetchMs,
+      },
+    };
+  });
 }
 
 /**
  * Universal auto-ingest resolver by Title or Slug.
  * Resolves against Turso DB -> TMDB search -> Spotify direct fallback.
- * Guarantees persistence in Turso DB for all successfully resolved titles.
- *
- * Slug lookups go through title_aliases (getTitleByAlias), not titles.slug directly.
- * match_type is 'agnostic' for slug/title-only resolutions with no external ID.
+ * SingleFlight prevents duplicate auto-ingest races.
  */
 async function resolveByTitleOrSlug({ slug, title: rawTitle, year: rawYear, type: rawType, force = false } = {}) {
   const parsed = slug ? parseSlug(slug) : { searchTitle: '', searchYear: null };
@@ -152,21 +186,80 @@ async function resolveByTitleOrSlug({ slug, title: rawTitle, year: rawYear, type
 
   if (!searchTitle && !targetSlug) return null;
 
-  // 1. Check Turso DB via title_aliases (not titles.slug directly)
-  let title = targetSlug ? await getTitleByAlias(targetSlug) : null;
-  let soundtracks = title ? await getSoundtracksForTitle(title.id) : [];
+  const flightKey = `slug:${targetSlug || searchTitle}:${searchYear || ''}:${force}`;
 
-  if (!force && title && soundtracks.length > 0) {
-    return { title, soundtracks };
-  }
+  return singleflight.do(flightKey, async () => {
+    // 1. Check Turso DB via title_aliases
+    let title = targetSlug ? await getTitleByAlias(targetSlug) : null;
+    let soundtracks = title ? await getSoundtracksForTitle(title.id) : [];
 
-  // 2. Title exists in DB but has no active soundtracks (or forced)
-  if (title && (force || soundtracks.length === 0)) {
-    const found = await findSoundtrackPlaylist(title.title, title.year);
-    if (found) {
-      if (force) {
-        await removeSoundtracksByTitleId(title.id);
+    if (!force && title && soundtracks.length > 0) {
+      return {
+        title,
+        soundtracks,
+        _telemetry: { cacheHit: true, externalFetch: false, externalFetchMs: 0 },
+      };
+    }
+
+    const externalStart = Date.now();
+
+    // 2. Title exists in DB but has no active soundtracks (or forced)
+    if (title && (force || soundtracks.length === 0)) {
+      const found = await findSoundtrackPlaylist(title.title, title.year);
+      if (found) {
+        if (force) {
+          await removeSoundtracksByTitleId(title.id);
+        }
+        const savedSt = await insertSoundtrack({
+          title_id: title.id,
+          spotify_playlist_id: found.spotify_playlist_id,
+          spotify_url: found.spotify_url,
+          type: found.type || 'playlist',
+          source: found.source || 'official',
+          verified: found.verified,
+          match_type: 'agnostic',
+        });
+        soundtracks = [savedSt.soundtrack];
       }
+      return {
+        title,
+        soundtracks,
+        _telemetry: {
+          cacheHit: false,
+          externalFetch: true,
+          externalFetchMs: Date.now() - externalStart,
+        },
+      };
+    }
+
+    // 3. Not in Turso DB -> Auto-Ingest Pipeline
+    // 3a. Search TMDB
+    const tmdbMatch = await searchTmdb(searchTitle, searchYear, searchType);
+    if (tmdbMatch && tmdbMatch.tmdb_id) {
+      const tmdbRes = await resolveByTmdb(tmdbMatch.tmdb_id, tmdbMatch.type || searchType, force);
+      if (tmdbRes && tmdbRes.title) {
+        return tmdbRes;
+      }
+    }
+
+    // 3b. TMDB has no match -> Direct Spotify search + Turso persistence
+    const found = await findSoundtrackPlaylist(searchTitle, searchYear);
+    const cleanYear = searchYear || new Date().getFullYear();
+    const cleanSlug = targetSlug || generateSlug(searchTitle, cleanYear);
+
+    const savedTitle = await resolveOrCreateTitle({
+      title: searchTitle,
+      year: cleanYear,
+      type: searchType || 'movie',
+      slug: cleanSlug,
+      imdb_id: null,
+      tmdb_id: null,
+    });
+
+    title = savedTitle.title;
+    soundtracks = [];
+
+    if (found) {
       const savedSt = await insertSoundtrack({
         title_id: title.id,
         spotify_playlist_id: found.spotify_playlist_id,
@@ -174,54 +267,21 @@ async function resolveByTitleOrSlug({ slug, title: rawTitle, year: rawYear, type
         type: found.type || 'playlist',
         source: found.source || 'official',
         verified: found.verified,
-        match_type: 'agnostic', // slug-only path — no external ID
+        match_type: 'agnostic',
       });
       soundtracks = [savedSt.soundtrack];
     }
-    return { title, soundtracks };
-  }
 
-  // 3. Not in Turso DB -> Auto-Ingest Pipeline
-  // 3a. Search TMDB (exact resolution path)
-  const tmdbMatch = await searchTmdb(searchTitle, searchYear, searchType);
-  if (tmdbMatch && tmdbMatch.tmdb_id) {
-    const tmdbRes = await resolveByTmdb(tmdbMatch.tmdb_id, tmdbMatch.type || searchType, force);
-    if (tmdbRes && tmdbRes.title) {
-      return tmdbRes;
-    }
-  }
-
-  // 3b. TMDB has no match -> Direct Spotify search + Turso persistence (agnostic)
-  const found = await findSoundtrackPlaylist(searchTitle, searchYear);
-  const cleanYear = searchYear || new Date().getFullYear();
-  const cleanSlug = targetSlug || generateSlug(searchTitle, cleanYear);
-
-  const savedTitle = await resolveOrCreateTitle({
-    title: searchTitle,
-    year: cleanYear,
-    type: searchType || 'movie',
-    slug: cleanSlug,
-    imdb_id: null,
-    tmdb_id: null,
+    return {
+      title,
+      soundtracks,
+      _telemetry: {
+        cacheHit: false,
+        externalFetch: true,
+        externalFetchMs: Date.now() - externalStart,
+      },
+    };
   });
-
-  title = savedTitle.title;
-  soundtracks = [];
-
-  if (found) {
-    const savedSt = await insertSoundtrack({
-      title_id: title.id,
-      spotify_playlist_id: found.spotify_playlist_id,
-      spotify_url: found.spotify_url,
-      type: found.type || 'playlist',
-      source: found.source || 'official',
-      verified: found.verified,
-      match_type: 'agnostic', // no external ID confirmed
-    });
-    soundtracks = [savedSt.soundtrack];
-  }
-
-  return { title, soundtracks };
 }
 
 /**
@@ -236,11 +296,22 @@ async function resolveBySlug(slug, force = false) {
  */
 async function resolveById(id, force = false) {
   if (!id) return null;
-  let title = await getTitleById(id);
-  if (!title) return null;
+  const flightKey = `id:${id}:${force}`;
 
-  let soundtracks = await getSoundtracksForTitle(title.id);
-  if (force || soundtracks.length === 0) {
+  return singleflight.do(flightKey, async () => {
+    let title = await getTitleById(id);
+    if (!title) return null;
+
+    let soundtracks = await getSoundtracksForTitle(title.id);
+    if (!force && soundtracks.length > 0) {
+      return {
+        title,
+        soundtracks,
+        _telemetry: { cacheHit: true, externalFetch: false, externalFetchMs: 0 },
+      };
+    }
+
+    const externalStart = Date.now();
     const found = await findSoundtrackPlaylist(title.title, title.year);
     if (found) {
       if (force) {
@@ -257,9 +328,17 @@ async function resolveById(id, force = false) {
       });
       soundtracks = [savedSt.soundtrack];
     }
-  }
 
-  return { title, soundtracks };
+    return {
+      title,
+      soundtracks,
+      _telemetry: {
+        cacheHit: false,
+        externalFetch: true,
+        externalFetchMs: Date.now() - externalStart,
+      },
+    };
+  });
 }
 
 module.exports = {

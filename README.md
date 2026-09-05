@@ -20,11 +20,24 @@ Built and maintained by **cnf1g** and **shreyash** under the **CNF1G** umbrella.
 
 ---
 
+## Observability & Documentation
+- **Interactive API Documentation:** [`/docs`](file:///d:/@1/@2026/allmyAPI/sptfy-api/public/openapi.json) (Scalar Reference)
+- **OpenAPI 3.0 Specification:** [`/openapi.json`](file:///d:/@1/@2026/allmyAPI/sptfy-api/public/openapi.json)
+- **Observability & Manual Testing Guide:** [OBSERVABILITY_GUIDE.md](file:///d:/@1/@2026/allmyAPI/sptfy-api/OBSERVABILITY_GUIDE.md)
+
+---
+
 ## Endpoints
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/health` | Health check and uptime status |
+| GET | `/health` | Lightweight liveness check (no DB queries) |
+| GET | `/health/db` | Turso DB connectivity and latency ping |
+| GET | `/version` | Semantic version, environment, Git commit SHA |
+| GET | `/docs` | Interactive OpenAPI documentation (Scalar Reference) |
+| GET | `/openapi.json` | Complete OpenAPI 3.0 specification |
+| GET | `/api/metrics` | In-memory telemetry, percentiles (p50/p95/p99), resolution stats |
+| GET | `/api/status-feed` | Live operational status feed for dashboards |
 | GET | `/api/token` | Current Spotify web-player access token |
 | GET | `/api/search` | Search tracks, albums, artists, playlists |
 | GET | `/api/track/:id` | Full track metadata by Spotify ID |
