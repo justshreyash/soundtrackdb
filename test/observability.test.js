@@ -224,4 +224,26 @@ describe('SoundTrackDB Observability & Reliability Suite', () => {
       assert.ok(data.metrics_summary);
     });
   });
+
+  describe('7. Vercel Serverless Function & Rewrite Compatibility', () => {
+    it('should normalize rewritten Vercel URLs via x-matched-path header', async () => {
+      // Simulate Vercel rewrite sending /api/index.js with original path in x-matched-path
+      const res = await fetch(`${baseUrl}/api/index.js`, {
+        headers: {
+          'x-matched-path': '/api/status-feed',
+        },
+      });
+      assert.equal(res.status, 200);
+      const data = await res.json();
+      assert.equal(data.success, true);
+      assert.equal(data.services.api.status, 'operational');
+    });
+
+    it('should serve favicon.svg statically with image/svg+xml content type', async () => {
+      const res = await fetch(`${baseUrl}/favicon.svg`);
+      assert.equal(res.status, 200);
+      assert.ok(res.headers.get('content-type')?.includes('image/svg+xml'));
+    });
+  });
 });
+

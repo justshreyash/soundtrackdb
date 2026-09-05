@@ -30,6 +30,33 @@ const GIT_COMMIT = getGitCommit();
 
 // Core middleware
 app.use(express.json());
+
+// URL restoration & normalization for Vercel Serverless Function rewrites
+app.use((req, res, next) => {
+  if (
+    req.url.startsWith('/api/index.js') ||
+    req.url.startsWith('/api/index') ||
+    req.url.startsWith('/src/index.js') ||
+    req.url === 'src/index.js'
+  ) {
+    const original =
+      req.headers['x-matched-path'] ||
+      req.headers['x-forwarded-uri'] ||
+      req.headers['x-vercel-matched-path'];
+    if (original) {
+      const qIndex = req.url.indexOf('?');
+      if (qIndex !== -1 && !original.includes('?')) {
+        req.url = original + req.url.slice(qIndex);
+      } else {
+        req.url = original;
+      }
+    } else {
+      req.url = req.url.replace(/^\/(?:api\/index(?:\.js)?|src\/index(?:\.js)?)/, '') || '/';
+    }
+  }
+  next();
+});
+
 app.use(requestContext);
 app.use(express.static(path.join(__dirname, '../public')));
 

@@ -1,14 +1,15 @@
 {
+  "version": 2,
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/api/index.js"
+    }
+  ],
   "crons": [
     {
       "path": "/cron/health-check",
       "schedule": "0 2 * * 0"
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "src/index.js"
     }
   ]
 }
