@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "SoundTrackDB API",
-    "description": "Enterprise-grade Spotify Music & Movie Soundtrack API engine by CNF1G. Autonomous TOTP rotation, instant IMDb/TMDB/slug resolution, verified Spotify playlists, zero credentials required.",
+    "description": "Free Movie & TV Soundtrack API engine by CNF1G & shreyash. Instant IMDb/TMDB/slug resolution to verified Spotify playlists with zero credentials required.",
     "version": "1.0.0",
     "contact": {
       "name": "cnf1g & shreyash · CNF1G",
@@ -23,10 +23,6 @@
     {
       "name": "Soundtracks",
       "description": "Movie & TV Soundtrack playlist resolution and management"
-    },
-    {
-      "name": "Spotify Catalog",
-      "description": "Search and metadata access via anonymous TOTP tokens"
     },
     {
       "name": "Observability & System",

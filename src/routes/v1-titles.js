@@ -187,21 +187,48 @@ router.get('/:id/music', validateInternalId, async (req, res) => {
   }
 });
 
-// 5. Query / List Titles: GET /v1/titles
+// 5. Query / List Titles: GET /v1/titles (Anti-Scraping Guard)
 router.get('/', async (req, res) => {
   const { q, year, type, limit, offset } = req.query;
+
+  // Protect proprietary dataset from automated bulk scraping
+  const authHeader = req.headers['authorization'] || '';
+  const bearerSecret = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+  const querySecret = req.query.secret || '';
+  const customHeaderSecret = req.headers['x-internal-secret'] || '';
+  const configuredSecret = process.env.CRON_SECRET || process.env.INTERNAL_SECRET;
+
+  const isInternal = configuredSecret && (
+    bearerSecret === configuredSecret ||
+    querySecret === configuredSecret ||
+    customHeaderSecret === configuredSecret
+  );
+
+  if (!isInternal && (!q || q.trim().length < 2)) {
+    return respondError(
+      res,
+      400,
+      'Search query parameter "q" (minimum 2 characters) is required. Unfiltered bulk catalog dumping is restricted to protect dataset integrity. Use /v1/titles/resolve or /v1/titles/imdb/:id for on-demand resolution.',
+      ErrorCodes.INVALID_REQUEST
+    );
+  }
+
   try {
     if (req.telemetry) {
       req.telemetry.cacheHit = true;
       req.telemetry.outcome = 'SUCCESS_CACHED';
     }
 
+    const parsedLimit = limit ? parseInt(limit, 10) : (isInternal ? 50 : 10);
+    const clampedLimit = isInternal ? Math.min(parsedLimit, 100) : Math.min(Math.max(parsedLimit, 1), 10);
+    const clampedOffset = offset ? Math.max(parseInt(offset, 10), 0) : 0;
+
     const results = await getAllTitles({
-      q,
+      q: q ? q.trim() : undefined,
       year,
       type,
-      limit: limit ? parseInt(limit, 10) : 50,
-      offset: offset ? parseInt(offset, 10) : 0,
+      limit: clampedLimit,
+      offset: clampedOffset,
     });
 
     const enriched = await Promise.all(

@@ -217,7 +217,7 @@ app.get('/api', (req, res) => {
   if (req.telemetry) req.telemetry.cacheHit = true;
   respond(res, 200, {
     name: 'SoundTrackDB API',
-    description: 'Free, unlimited Spotify Search & Metadata API. Anonymous TOTP-based token generation refreshed every 30 minutes. No credentials required.',
+    description: 'Movie & TV Soundtrack API mapping IMDb, TMDB, and titles to verified Spotify soundtrack playlists.',
     version: packageJson.version,
     git_commit: GIT_COMMIT,
     docs: '/docs',
@@ -229,19 +229,28 @@ app.get('/api', (req, res) => {
       docs: 'GET /docs',
       metrics: 'GET /api/metrics',
       status: 'GET /api/status-feed',
-      token: 'GET /api/token',
       'soundtrack-resolve': 'GET /v1/titles/resolve?title={title}&year={year}&type={type}',
       'soundtrack-by-imdb': 'GET /v1/titles/imdb/:imdb_id/music',
       'soundtrack-by-tmdb': 'GET /v1/titles/tmdb/:tmdb_id/music',
       'soundtrack-by-slug': 'GET /v1/titles/slug/:slug/music',
       'soundtrack-by-id': 'GET /v1/titles/:id/music',
-      'soundtrack-list': 'GET /v1/titles',
     },
   });
 });
 
-// GET /api/token
+// GET /api/token — Internal maintenance probe only (strictly protected from public access)
 app.get('/api/token', async (req, res) => {
+  const cronSecret = process.env.CRON_SECRET || process.env.INTERNAL_SECRET;
+  const authHeader = req.headers['authorization'] || '';
+  const tokenFromHeader = authHeader.replace(/^Bearer\s+/i, '').trim();
+  const secretHeader = req.headers['x-internal-secret'] || '';
+  const tokenFromQuery = req.query.secret || '';
+
+  // Return 404 to hide endpoint existence from public crawlers and scrapers
+  if (cronSecret && tokenFromHeader !== cronSecret && secretHeader !== cronSecret && tokenFromQuery !== cronSecret) {
+    return respondError(res, 404, 'Endpoint not found. See /api or /docs for available endpoints.', ErrorCodes.TITLE_NOT_FOUND);
+  }
+
   try {
     const force = req.query.force === 'true' || req.query.refresh === 'true';
     const token = await getToken(force);
@@ -250,16 +259,9 @@ app.get('/api/token', async (req, res) => {
     }
     if (req.telemetry) req.telemetry.cacheHit = true;
     respond(res, 200, {
-      note: 'Use this token in Authorization: Bearer <access_token>',
       access_token: token,
       token_type: 'Bearer',
-      usage: {
-        search: 'curl -H "Authorization: Bearer <token>" https://api.spotify.com/v1/search?q=query&type=track',
-        track: 'curl -H "Authorization: Bearer <token>" https://api.spotify.com/v1/tracks/{id}',
-        album: 'curl -H "Authorization: Bearer <token>" https://api.spotify.com/v1/albums/{id}',
-        playlist: 'curl -H "Authorization: Bearer <token>" https://api.spotify.com/v1/playlists/{id}',
-        artist: 'curl -H "Authorization: Bearer <token>" https://api.spotify.com/v1/artists/{id}',
-      },
+      internal: true,
     });
   } catch (err) {
     respondError(res, 500, 'Internal server error.', ErrorCodes.INTERNAL_ERROR);
@@ -272,6 +274,9 @@ app.use('/v1/titles', require('./routes/v1-titles'));
 
 // Cron routes
 app.use('/cron', require('./routes/cron'));
+
+// Developer Early Access / Waitlist routes
+app.use('/api', require('./routes/subscribe'));
 
 // Root route - serve index.html
 app.get('/', (req, res) => {

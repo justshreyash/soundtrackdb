@@ -1,0 +1,6 @@
+{
+  "name": "SoundTrackDB - Free Spotify Search & Movie Soundtrack API",
+  "description": "Free, unlimited Spotify music data and Movie Soundtrack API by CNF1G & shreyash. No API keys, no sign-ups, no rate limits. Map cinema to Spotify audio.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

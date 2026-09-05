@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" fill="none">
   <!-- Outer Rounded Dark Badge -->
   <rect width="200" height="200" rx="44" fill="#0A0A0A"/>
-  <rect x="2" y="2" width="196" height="196" rx="42" stroke="#ED462D" stroke-width="3" stroke-opacity="0.25"/>
+  <rect x="2" y="2" width="196" height="196" rx="42" stroke="#ED462D" stroke-width="2" stroke-opacity="0.2"/>
 
   <!-- Inner Screen / IC Chip Frame with Rounded Corners -->
-  <rect x="36" y="32" width="128" height="136" rx="16" stroke="#ED462D" stroke-width="10" stroke-linejoin="round"/>
+  <rect x="36" y="32" width="128" height="136" rx="16" stroke="#ED462D" stroke-width="9" stroke-linejoin="round"/>
 
   <!-- Top Sprocket / Tape Perforation Dashes -->
   <rect x="52" y="44" width="11" height="6" rx="1.5" fill="#ED462D"/>
@@ -19,15 +19,15 @@
   <rect x="137" y="150" width="11" height="6" rx="1.5" fill="#ED462D"/>
 
   <!-- Audio Equalizer Waveform Pixel Grid (5 Vertical Bars) -->
+  <!-- BAR 1 (Left, 5 blocks) -->
   <g fill="#ED462D">
-    <!-- BAR 1 -->
     <rect x="52" y="128" width="12" height="7" rx="1"/>
     <rect x="52" y="119" width="12" height="7" rx="1"/>
     <rect x="52" y="110" width="12" height="7" rx="1"/>
     <rect x="52" y="101" width="12" height="7" rx="1"/>
     <rect x="52" y="92" width="12" height="7" rx="1"/>
 
-    <!-- BAR 2 -->
+    <!-- BAR 2 (8 blocks) -->
     <rect x="72" y="128" width="12" height="7" rx="1"/>
     <rect x="72" y="119" width="12" height="7" rx="1"/>
     <rect x="72" y="110" width="12" height="7" rx="1"/>
@@ -37,7 +37,7 @@
     <rect x="72" y="74" width="12" height="7" rx="1"/>
     <rect x="72" y="65" width="12" height="7" rx="1"/>
 
-    <!-- BAR 3 (Center Peak) -->
+    <!-- BAR 3 (Center Peak, 11 blocks extending top and bottom) -->
     <rect x="94" y="142" width="12" height="7" rx="1"/>
     <rect x="94" y="133" width="12" height="7" rx="1"/>
     <rect x="94" y="124" width="12" height="7" rx="1"/>
@@ -50,7 +50,7 @@
     <rect x="94" y="61" width="12" height="7" rx="1"/>
     <rect x="94" y="52" width="12" height="7" rx="1"/>
 
-    <!-- BAR 4 -->
+    <!-- BAR 4 (7 blocks) -->
     <rect x="116" y="128" width="12" height="7" rx="1"/>
     <rect x="116" y="119" width="12" height="7" rx="1"/>
     <rect x="116" y="110" width="12" height="7" rx="1"/>
@@ -59,7 +59,7 @@
     <rect x="116" y="83" width="12" height="7" rx="1"/>
     <rect x="116" y="74" width="12" height="7" rx="1"/>
 
-    <!-- BAR 5 -->
+    <!-- BAR 5 (Right, 4 blocks) -->
     <rect x="136" y="128" width="12" height="7" rx="1"/>
     <rect x="136" y="119" width="12" height="7" rx="1"/>
     <rect x="136" y="110" width="12" height="7" rx="1"/>

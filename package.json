@@ -1,11 +1,12 @@
 {
   "name": "soundtrackdb",
   "version": "1.0.0",
-  "description": "Free Spotify Music & Movie Soundtrack API by CNF1G — anonymous TOTP tokens, no credentials required",
+  "description": "SoundTrackDB - Cinema Soundtrack Resolution API by CNF1G & shreyash. Map IMDb, TMDB, and movies to verified Spotify audio.",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
+    "build:ui": "npm --prefix landingPageCodebase run build",
     "refresh": "node scripts/refresh.js",
     "ingest": "node scripts/ingest-by-tmdb.js",
     "migrate": "node scripts/migrate-to-turso.js",
@@ -18,7 +19,7 @@
     "@libsql/client": "^0.17.4",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
-    "node-cron": "^3.0.3"
+    "node-cron": "^3.0.3",
+    "nodemailer": "^10.0.0"
   }
 }
-

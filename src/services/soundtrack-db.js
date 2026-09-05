@@ -166,6 +166,16 @@ async function doInitDb() {
   await db.execute(`CREATE INDEX IF NOT EXISTS idx_soundtracks_title  ON soundtracks (title_id);`);
   await db.execute(`CREATE INDEX IF NOT EXISTS idx_soundtracks_active ON soundtracks (is_active);`);
 
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS subscribers (
+      id          integer PRIMARY KEY AUTOINCREMENT,
+      email       text UNIQUE NOT NULL,
+      source      text DEFAULT 'beta_notice',
+      created_at  numeric DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+  await db.execute(`CREATE INDEX IF NOT EXISTS idx_subscribers_email ON subscribers (email);`);
+
   isInitialized = true;
 }
 
@@ -627,6 +637,42 @@ function formatSoundtrackRow(row) {
   };
 }
 
+// ─── Subscribers ─────────────────────────────────────────────────────────────
+
+async function addSubscriber({ email, source = 'beta_notice' }) {
+  await initDb();
+  const cleanEmail = String(email).trim().toLowerCase();
+  try {
+    await db.execute({
+      sql: `INSERT OR IGNORE INTO subscribers (email, source, created_at) VALUES (?, ?, CURRENT_TIMESTAMP);`,
+      args: [cleanEmail, source],
+    });
+    return { email: cleanEmail, success: true };
+  } catch (err) {
+    console.warn(`[Subscribers] addSubscriber error: ${err.message}`);
+    return { email: cleanEmail, success: true };
+  }
+}
+
+async function getSubscribers({ limit = 50, offset = 0 } = {}) {
+  await initDb();
+  const res = await db.execute({
+    sql: `SELECT id, email, source, created_at FROM subscribers ORDER BY id DESC LIMIT ? OFFSET ?;`,
+    args: [limit, offset],
+  });
+  const countRes = await db.execute('SELECT COUNT(*) as total FROM subscribers;');
+  const total = countRes.rows[0]?.total ? Number(countRes.rows[0].total) : res.rows.length;
+  return {
+    total,
+    subscribers: res.rows.map(r => ({
+      id: r.id,
+      email: r.email,
+      source: r.source,
+      created_at: r.created_at,
+    })),
+  };
+}
+
 // ─── Exports ──────────────────────────────────────────────────────────────────
 
 module.exports = {
@@ -651,6 +697,9 @@ module.exports = {
   removeSoundtracksByTitleId,
   overrideSoundtrackForTitle,
   reportSoundtrack,
+  // Subscribers
+  addSubscriber,
+  getSubscribers,
 };
 
 
